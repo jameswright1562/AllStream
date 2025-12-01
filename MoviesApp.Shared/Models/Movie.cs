@@ -7,6 +7,9 @@ public class Movie
     public string Title { get; set; } = string.Empty;
     public string Year { get; set; } = string.Empty;
     public string PosterUrl { get; set; } = string.Empty;
+    public bool IsTrending { get; set; } = false;
+    public int? TrendingOrder { get; set; }
+    public DateTime? TrendingAt { get; set; }
 }
 
 public class TvSeries
@@ -15,6 +18,9 @@ public class TvSeries
     public string Name { get; set; } = string.Empty;
     public string Year { get; set; } = string.Empty;
     public string PosterUrl { get; set; } = string.Empty;
+    public bool IsTrending { get; set; } = false;
+    public int? TrendingOrder { get; set; }
+    public DateTime? TrendingAt { get; set; }
 }
 
 public class TvDetails
@@ -39,6 +45,12 @@ public class TvEpisode
     public string Name { get; set; } = string.Empty;
     public string StillUrl { get; set; } = string.Empty;
     public int Runtime { get; set; }
+}
+
+public class TrendingStamp
+{
+    public string Category { get; set; } = string.Empty; // "movies" or "tv"
+    public DateTime LastUpdated { get; set; }
 }
 
 public class MovieSearchOptions

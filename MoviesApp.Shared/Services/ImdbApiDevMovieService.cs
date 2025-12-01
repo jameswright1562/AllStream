@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MoviesApp.Shared.Models;
+using MongoDB.Driver;
 
 namespace MoviesApp.Shared.Services;
 
@@ -10,10 +11,30 @@ public class ImdbApiDevMovieService : IMovieService
 {
     private readonly HttpClient _http;
     private readonly JsonSerializerOptions _jsonOpts = new(JsonSerializerDefaults.Web);
+    private readonly Settings _settings;
+    private readonly IMongoDatabase? _mongoDb;
+    private readonly IMongoCollection<Movie>? _moviesCol;
+    private readonly IMongoCollection<TvSeries>? _tvCol;
+    private readonly IMongoCollection<TrendingStamp>? _trendCol;
 
-    public ImdbApiDevMovieService(HttpClient http)
+    public ImdbApiDevMovieService(HttpClient http, Settings settings)
     {
         _http = http;
+        _settings = settings;
+        if (!string.IsNullOrWhiteSpace(settings.MongoUri) && !string.IsNullOrWhiteSpace(settings.MongoDatabase))
+        {
+            try
+            {
+                var client = new MongoClient(settings.MongoUri);
+                _mongoDb = client.GetDatabase(settings.MongoDatabase);
+                _moviesCol = _mongoDb.GetCollection<Movie>("movies");
+                _tvCol = _mongoDb.GetCollection<TvSeries>("tvseries");
+                _trendCol = _mongoDb.GetCollection<TrendingStamp>("trending_meta");
+            }
+            catch
+            {
+            }
+        }
     }
 
     public async Task<IReadOnlyList<Movie>> GetTopRatedAsync(int page = 1, CancellationToken ct = default)
@@ -29,7 +50,7 @@ public class ImdbApiDevMovieService : IMovieService
     {
         if (string.IsNullOrWhiteSpace(query))
         {
-            var trending = await TryTmdbTrendingAll(ct);
+            var trending = await GetTrendingMoviesAsync(ct);
             if (trending.Count > 0) return trending;
         }
         var list = await TryTmdbSearch(query, ct);
@@ -43,7 +64,7 @@ public class ImdbApiDevMovieService : IMovieService
     {
         if (string.IsNullOrWhiteSpace(options.Query))
         {
-            var trending = await TryTmdbTrendingAll(ct);
+            var trending = await GetTrendingMoviesAsync(ct);
             if (trending.Count > 0) return trending;
         }
         var list = await TryTmdbSearchMovies(options, ct);
@@ -55,7 +76,7 @@ public class ImdbApiDevMovieService : IMovieService
     {
         if (string.IsNullOrWhiteSpace(options.Query))
         {
-            var trending = await TryTmdbTrendingAllTv(ct);
+            var trending = await GetTrendingTvAsync(ct);
             if (trending.Count > 0) return trending;
         }
         var list = await TryTmdbSearchTv(options, ct);
@@ -298,6 +319,103 @@ public class ImdbApiDevMovieService : IMovieService
         {
             return new List<TvSeries>();
         }
+    }
+
+    private async Task<List<Movie>> GetTrendingMoviesAsync(CancellationToken ct)
+    {
+        if (_moviesCol == null || _trendCol == null)
+        {
+            return await TryTmdbTrendingAll(ct);
+        }
+        var stamp = await _trendCol.Find(Builders<TrendingStamp>.Filter.Eq(x => x.Category, "movies")).FirstOrDefaultAsync(ct);
+        var now = DateTime.UtcNow;
+        if (stamp != null && now - stamp.LastUpdated < TimeSpan.FromMinutes(10))
+        {
+            var cached = await _moviesCol.Find(Builders<Movie>.Filter.Eq(x => x.IsTrending, true))
+                .SortBy(x => x.TrendingOrder)
+                .Limit(50)
+                .ToListAsync(ct);
+            if (cached.Count > 0) return cached;
+        }
+        var fresh = await TryTmdbTrendingAll(ct);
+        if (fresh.Count > 0)
+        {
+            try
+            {
+                await _moviesCol.UpdateManyAsync(Builders<Movie>.Filter.Empty, Builders<Movie>.Update.Set(x => x.IsTrending, false), cancellationToken: ct);
+                for (int i = 0; i < fresh.Count; i++)
+                {
+                    var m = fresh[i];
+                    m.IsTrending = true;
+                    m.TrendingOrder = i;
+                    m.TrendingAt = now;
+                    await _moviesCol.UpdateOneAsync(Builders<Movie>.Filter.Eq(x => x.TmdbId, m.TmdbId),
+                        Builders<Movie>.Update
+                            .Set(x => x.Title, m.Title)
+                            .Set(x => x.Year, m.Year)
+                            .Set(x => x.PosterUrl, m.PosterUrl)
+                            .Set(x => x.IsTrending, true)
+                            .Set(x => x.TrendingOrder, m.TrendingOrder)
+                            .Set(x => x.TrendingAt, m.TrendingAt),
+                        new UpdateOptions { IsUpsert = true }, ct);
+                }
+                var newStamp = new TrendingStamp { Category = "movies", LastUpdated = now };
+                await _trendCol.UpdateOneAsync(Builders<TrendingStamp>.Filter.Eq(x => x.Category, "movies"),
+                    Builders<TrendingStamp>.Update.Set(x => x.LastUpdated, now), new UpdateOptions { IsUpsert = true }, ct);
+            }
+            catch
+            {
+            }
+        }
+        return fresh;
+    }
+
+    private async Task<List<TvSeries>> GetTrendingTvAsync(CancellationToken ct)
+    {
+        if (_tvCol == null || _trendCol == null)
+        {
+            return await TryTmdbTrendingAllTv(ct);
+        }
+        var stamp = await _trendCol.Find(Builders<TrendingStamp>.Filter.Eq(x => x.Category, "tv")).FirstOrDefaultAsync(ct);
+        var now = DateTime.UtcNow;
+        if (stamp != null && now - stamp.LastUpdated < TimeSpan.FromMinutes(10))
+        {
+            var cached = await _tvCol.Find(Builders<TvSeries>.Filter.Eq(x => x.IsTrending, true))
+                .SortBy(x => x.TrendingOrder)
+                .Limit(50)
+                .ToListAsync(ct);
+            if (cached.Count > 0) return cached;
+        }
+        var fresh = await TryTmdbTrendingAllTv(ct);
+        if (fresh.Count > 0)
+        {
+            try
+            {
+                await _tvCol.UpdateManyAsync(Builders<TvSeries>.Filter.Empty, Builders<TvSeries>.Update.Set(x => x.IsTrending, false), cancellationToken: ct);
+                for (int i = 0; i < fresh.Count; i++)
+                {
+                    var s = fresh[i];
+                    s.IsTrending = true;
+                    s.TrendingOrder = i;
+                    s.TrendingAt = now;
+                    await _tvCol.UpdateOneAsync(Builders<TvSeries>.Filter.Eq(x => x.TmdbId, s.TmdbId),
+                        Builders<TvSeries>.Update
+                            .Set(x => x.Name, s.Name)
+                            .Set(x => x.Year, s.Year)
+                            .Set(x => x.PosterUrl, s.PosterUrl)
+                            .Set(x => x.IsTrending, true)
+                            .Set(x => x.TrendingOrder, s.TrendingOrder)
+                            .Set(x => x.TrendingAt, s.TrendingAt),
+                        new UpdateOptions { IsUpsert = true }, ct);
+                }
+                await _trendCol.UpdateOneAsync(Builders<TrendingStamp>.Filter.Eq(x => x.Category, "tv"),
+                    Builders<TrendingStamp>.Update.Set(x => x.LastUpdated, now), new UpdateOptions { IsUpsert = true }, ct);
+            }
+            catch
+            {
+            }
+        }
+        return fresh;
     }
 
     private static List<Movie> ParseFlexibleResults(JsonElement root)

@@ -11,21 +11,22 @@ public sealed class SafeWebViewClient : WebViewClient
     {
         "0.0.0.0",
         "localhost",
-        "appassets.androidplatform.net"
+        "appassets.androidplatform.net",
     };
 
     public override bool ShouldOverrideUrlLoading(WebView view, IWebResourceRequest request)
     {
         var url = request?.Url;
-        if (url == null) return false;
+        if (url == null)
+            return false;
 
         var host = url.Host ?? "";
         var scheme = url.Scheme ?? "";
 
         var isInternal =
-            AllowedHosts.Contains(host) ||
-            scheme.Equals("about", StringComparison.OrdinalIgnoreCase) ||
-            scheme.Equals("file", StringComparison.OrdinalIgnoreCase);
+            AllowedHosts.Contains(host)
+            || scheme.Equals("about", StringComparison.OrdinalIgnoreCase)
+            || scheme.Equals("file", StringComparison.OrdinalIgnoreCase);
 
         if (isInternal)
             return false; // allow internal nav
@@ -38,13 +39,15 @@ public sealed class SafeWebViewClient : WebViewClient
 
 public sealed class SafeWebChromeClient : WebChromeClient
 {
-    public override bool OnCreateWindow(WebView view, bool isDialog, bool isUserGesture, Android.OS.Message resultMsg)
+    public override bool OnCreateWindow(
+        WebView view,
+        bool isDialog,
+        bool isUserGesture,
+        Android.OS.Message resultMsg
+    )
     {
         // Block window.open / popups
         return false;
     }
 }
 #endif
-
- 
-

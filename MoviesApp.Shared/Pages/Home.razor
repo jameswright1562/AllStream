@@ -1,128 +1,36 @@
-@page "/"
-@using MoviesApp.Shared.Services
-@using MoviesApp.Shared.Models
-@inject IFormFactor FormFactor
-@inject IMovieService MovieService
+﻿@page "/"
 
-<PageTitle>Movies</PageTitle>
+<PageTitle>MoviesApp</PageTitle>
 
-<div class="container py-3">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <div class="row g-2">
-                <div class="col-12 col-md-6">
-                    <input class="form-control" @bind="_opts.Query" placeholder="Search movies" @bind:event="oninput" />
-                </div>
-                <div class="col-6 col-md-2">
-                    <input class="form-control" type="number" min="1" @bind="_opts.Page" placeholder="Page" />
-                </div>
-                <div class="col-6 col-md-2">
-                    <input class="form-control" type="text" @bind="_opts.Region" placeholder="Region" />
-                </div>
-                <div class="col-6 col-md-2">
-                    <input class="form-control" type="number" @bind="_year" placeholder="Year" />
-                </div>
-                <div class="col-6 col-md-2">
-                    <input class="form-control" type="number" @bind="_primaryReleaseYear"
-                        placeholder="Primary Release Year" />
-                </div>
-                <div class="col-6 col-md-2 d-flex align-items-center">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="adult" @bind="_opts.IncludeAdult" />
-                        <label class="form-check-label" for="adult">Include adult</label>
-                    </div>
-                </div>
-                <div class="col-12 col-md-3">
-                    <select class="form-select" @bind="_opts.Language">
-                        <option value="en-US">English (US)</option>
-                        <option value="en-GB">English (UK)</option>
-                        <option value="fr-FR">French</option>
-                        <option value="es-ES">Spanish</option>
-                    </select>
-                </div>
-                <div class="col-12 col-md-3">
-                    <button class="btn btn-primary w-100" @onclick="Search">Search</button>
-                </div>
-                <div class="col-12 col-md-3">
-                    <button class="btn btn-outline-secondary w-100" @onclick="Clear">Clear</button>
+<section class="home-hero py-5">
+    <div class="container">
+        <h1 class="display-5 fw-bold">Stream movies, series, and live sports</h1>
+        <p class="lead text-secondary mb-4">
+            MoviesApp brings a unified, fast experience for discovering titles and watching content across web and MAUI.
+        </p>
+        <div class="row g-4">
+            <div class="col-12 col-md-6">
+                <div class="p-3 rounded-3" style="background:#0f172a; border:1px solid var(--brand-border)">
+                    <h5 class="mb-2">What you can do</h5>
+                    <ul class="m-0 text-secondary">
+                        <li>Browse movies with posters and quick play</li>
+                        <li>Explore TV series and episode details</li>
+                        <li>Watch live sports via CDN player</li>
+                        <li>Enjoy a clean, modern dark theme</li>
+                    </ul>
                 </div>
             </div>
-            <div class="text-danger mt-2">@_error</div>
-            <div class="mt-2">@_status</div>
-            <div class="mt-2">@(_results.Count) results</div>
+            <div class="col-12 col-md-6">
+                <div class="p-3 rounded-3" style="background:#0f172a; border:1px solid var(--brand-border)">
+                    <h5 class="mb-2">How it works</h5>
+                    <p class="m-0 text-secondary">
+                        Use the navigation above to open Movies, TV Series, or Live Sports. Pages load quickly with server-rendered Blazor and a consistent UI across platforms.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 text-secondary">
+            Built with .NET, Blazor, and a shared component library for web and MAUI.
         </div>
     </div>
-    <div class="text-danger mt-2">@_error</div>
-    <div class="mt-2">@_status</div>
-    <div class="mt-2">@(_results.Count) results</div>
-    <div class="row mt-3">
-        @foreach (var m in _results)
-        {
-            <div class="col-12 col-md-6 col-lg-4 mb-3">
-                <div class="card h-100 shadow-sm">
-                    @if (!string.IsNullOrWhiteSpace(m.PosterUrl))
-                    {
-                        <img class="card-img-top" src="@m.PosterUrl" alt="@m.Title" />
-                    }
-                    <div class="card-body">
-                        <h5 class="card-title d-flex justify-content-between align-items-center">
-                            <span>@m.Title</span>
-                            @if (!string.IsNullOrWhiteSpace(m.Year))
-                            {
-                                <span class="badge bg-secondary">@m.Year</span>
-                            }
-                        </h5>
-                        <a class="btn btn-success"
-                            href="/player/@(string.IsNullOrWhiteSpace(m.ImdbId) ? m.TmdbId : m.ImdbId)">Play</a>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-</div>
-}
-
-@code {
-    MovieSearchOptions _opts = new();
-    int? _year;
-    int? _primaryReleaseYear;
-    string _error = string.Empty;
-    string _status = string.Empty;
-    List<Movie> _results = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        _status = "Loading";
-        _results = (await MovieService.SearchAsync(new MovieSearchOptions { Query = string.Empty })).ToList();
-        _status = string.Empty;
-    }
-
-    async Task Search()
-    {
-        try
-        {
-            _status = "Searching";
-            _error = string.Empty;
-            _opts.Year = _year;
-            _opts.PrimaryReleaseYear = _primaryReleaseYear;
-            _results = (await MovieService.SearchAsync(_opts)).ToList();
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
-        finally
-        {
-            _status = string.Empty;
-        }
-    }
-
-    async Task Clear()
-    {
-        _opts = new MovieSearchOptions();
-        _year = null;
-        _primaryReleaseYear = null;
-        await Search();
-    }
-
-}
+</section>

@@ -27,7 +27,7 @@
                 </div>
                 <div class="col-12 col-md-8">
                     <h3>@_details.Name</h3>
-                    <p class="text-muted">@_details.Overview</p>
+                    <p class="text-secondary">@_details.Overview</p>
 
                     <h5>Seasons</h5>
                     <div class="d-flex flex-wrap gap-2">
@@ -51,9 +51,9 @@
                                         {
                                             <img class="card-img-top" src="@e.StillUrl" alt="@e.Name"/>
                                         }
-                                        <div class="card-body d-flex flex-column">
-                                            <strong>Episode @e.EpisodeNumber</strong>
-                                            <span class="text-muted">@e.Name</span>
+                                        <div class="card-body d-flex flex-column text-secondary">
+                                            <strong class="text-secondary">Episode @e.EpisodeNumber</strong>
+                                            <span class="text-secondary">@e.Name</span>
                                             <button class="btn btn-success btn-sm mt-auto" @onclick="() => Play(e.EpisodeNumber)">Play</button>
                                         </div>
                                     </div>

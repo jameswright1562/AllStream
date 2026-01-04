@@ -14,17 +14,20 @@ namespace MoviesApp.Shared.Models.CDN
 
     public record CdnLiveTv
     {
-        [JsonPropertyName("total_events")] 
+        [JsonPropertyName("total_events")]
         public int TotalEvents { get; init; }
 
         [JsonExtensionData]
         public IDictionary<string, JsonElement>? Items { get; init; }
     }
-    public enum Sport {
+
+    public enum Sport
+    {
         Soccer,
         NBA,
-        NHL
+        NHL,
     }
+
     public record SportResponse
     {
         public required string GameId { get; init; }
@@ -39,38 +42,39 @@ namespace MoviesApp.Shared.Models.CDN
         public required string? End { get; init; }
         public required GameStatus Status { get; init; }
         public required Channels[] Channels { get; init; }
-
     }
 
     public enum GameStatus
     {
         [JsonStringEnumMemberName("live")]
         Live,
+
         [JsonStringEnumMemberName("upcoming")]
         Upcoming,
+
         [JsonStringEnumMemberName("finished")]
-        Finished
+        Finished,
     }
 
     public record Channels
     {
         [JsonPropertyName("channel_name")]
         public required string Name { get; init; }
+
         [JsonPropertyName("channel_code")]
         public required string Code { get; init; }
         public required string Url { get; init; }
         public required string Image { get; init; }
-        public  ChannelStatus? Status { get; init; }
+        public ChannelStatus? Status { get; init; }
         public required int Viewers { get; init; }
-
     }
 
     public enum ChannelStatus
-    { 
-        [JsonStringEnumMemberName("online")]  
+    {
+        [JsonStringEnumMemberName("online")]
         Online,
-        [JsonStringEnumMemberName("offline")]
-        Offline
 
+        [JsonStringEnumMemberName("offline")]
+        Offline,
     }
 }

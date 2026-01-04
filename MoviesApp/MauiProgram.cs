@@ -1,18 +1,16 @@
-using Microsoft.Extensions.Logging;
 using System;
-using MoviesApp.Services;
-using Microsoft.Extensions.Configuration;
-using MoviesApp.Shared.Models;
-using Microsoft.Maui.Storage;
 using Microsoft.AspNetCore.Components.WebView.Maui;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.PlatformConfiguration;
 using Microsoft.Maui.Platform;
+using Microsoft.Maui.Storage;
+using MoviesApp.Services;
+using MoviesApp.Shared.Models;
 #if ANDROID
 using Android.Webkit;
 using Microsoft.Maui.ApplicationModel;
 #endif
-
- 
 
 namespace MoviesApp;
 
@@ -26,33 +24,35 @@ public static class MauiProgram
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-            }).ConfigureMauiHandlers(handlers =>
+            })
+            .ConfigureMauiHandlers(handlers =>
             {
-                BlazorWebViewHandler.BlazorWebViewMapper.AppendToMapping("Adblock", (handler, view) =>
-                {
+                BlazorWebViewHandler.BlazorWebViewMapper.AppendToMapping(
+                    "Adblock",
+                    (handler, view) => {
 #if ANDROID
-                    var webView = handler.PlatformView; // Android.Webkit.WebView
+                        var webView = handler.PlatformView; // Android.Webkit.WebView
 
-                    // Keep navigation under control
-                    webView.SetWebViewClient(new SafeWebViewClient());
+                        // Keep navigation under control
+                        webView.SetWebViewClient(new SafeWebViewClient());
 
-                    // Block "window.open" / popups
-                    webView.SetWebChromeClient(new SafeWebChromeClient());
+                        // Block "window.open" / popups
+                        webView.SetWebChromeClient(new SafeWebChromeClient());
 
-                    // Good defaults
-                    webView.Settings.JavaScriptCanOpenWindowsAutomatically = false;
-                    webView.Settings.SetSupportMultipleWindows(false);
+                        // Good defaults
+                        webView.Settings.JavaScriptCanOpenWindowsAutomatically = false;
+                        webView.Settings.SetSupportMultipleWindows(false);
 #endif
-
 
 #if WINDOWS
-                    var wv2 = handler.PlatformView; // WebView2
-                    wv2.CoreWebView2Initialized += (f, e) =>
-                    {
-                        AdBlock.Configure(f.CoreWebView2);
-                    };
+                        var wv2 = handler.PlatformView; // WebView2
+                        wv2.CoreWebView2Initialized += (f, e) =>
+                        {
+                            AdBlock.Configure(f.CoreWebView2);
+                        };
 #endif
-                });
+                    }
+                );
             });
         builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
         Settings settingsFromJson = builder.Configuration.Get<Settings>() ?? new Settings();
@@ -65,11 +65,13 @@ public static class MauiProgram
                 builder.Configuration.AddJsonStream(s);
             }
         }
-        catch
-        {
-        }
-        MoviesApp.Shared.Services.ServiceBuilder.AddSharedServices(builder.Services, sp => new FormFactor(), builder.Configuration.Get<Settings>() ?? settingsFromJson);
- 
+        catch { }
+        MoviesApp.Shared.Services.ServiceBuilder.AddSharedServices(
+            builder.Services,
+            sp => new FormFactor(),
+            builder.Configuration.Get<Settings>() ?? settingsFromJson
+        );
+
         builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG
@@ -88,21 +90,25 @@ internal sealed class SafeWebViewClient : WebViewClient
     {
         "0.0.0.0",
         "localhost",
-        "appassets.androidplatform.net"
+        "appassets.androidplatform.net",
     };
 
-    public override bool ShouldOverrideUrlLoading(Android.Webkit.WebView view, IWebResourceRequest request)
+    public override bool ShouldOverrideUrlLoading(
+        Android.Webkit.WebView view,
+        IWebResourceRequest request
+    )
     {
         var url = request?.Url;
-        if (url == null) return false;
+        if (url == null)
+            return false;
 
         var host = url.Host ?? "";
         var scheme = url.Scheme ?? "";
 
         var isInternal =
-            AllowedHosts.Contains(host) ||
-            scheme.Equals("about", StringComparison.OrdinalIgnoreCase) ||
-            scheme.Equals("file", StringComparison.OrdinalIgnoreCase);
+            AllowedHosts.Contains(host)
+            || scheme.Equals("about", StringComparison.OrdinalIgnoreCase)
+            || scheme.Equals("file", StringComparison.OrdinalIgnoreCase);
 
         if (isInternal)
             return false;
@@ -114,7 +120,12 @@ internal sealed class SafeWebViewClient : WebViewClient
 
 internal sealed class SafeWebChromeClient : WebChromeClient
 {
-    public override bool OnCreateWindow(Android.Webkit.WebView view, bool isDialog, bool isUserGesture, Android.OS.Message resultMsg)
+    public override bool OnCreateWindow(
+        Android.Webkit.WebView view,
+        bool isDialog,
+        bool isUserGesture,
+        Android.OS.Message resultMsg
+    )
     {
         return false;
     }

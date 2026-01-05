@@ -6,31 +6,16 @@
 @inject AllStream.Shared.Models.Settings Settings
 @inject IJSRuntime JS;
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<script src="_content/AllStream.Shared/hls-init.js"></script>
 <PageTitle>Player</PageTitle>
 
 @if(!string.IsNullOrWhiteSpace(_embed) || !string.IsNullOrWhiteSpace(_srcdoc))
 {
-<div class="ratio ratio-16x9">
-@*     @if (!string.IsNullOrWhiteSpace(_srcdoc))
-    {
-            <iframe src="@_srcdoc" name="player" allow="autoplay; encrypted-media" sandbox="allow-same-origin allow-scripts" allowfullscreen="true" fullscreen></iframe>
-    }
-    @if (htmlNode != null)
-    {
-        
-    }
-    else
-    {
+<div class="ratio ratio-16x9 w-80">
         <iframe src="@_embed" name="player" allow="autoplay; encrypted-media" allowfullscreen="true" fullscreen></iframe>
-    } *@
-        <iframe src="@_embed" name="player" allow="autoplay; encrypted-media" allowfullscreen="true" fullscreen></iframe>
-
 </div>
 }
 <div class="mt-2">
-    <a class="btn btn-secondary" href="/">Back</a>
+    <button class="btn btn-secondary" @onclick="GoBack">Back</button>
     <span class="ms-2">@_embed</span>
     <div class="text-danger">@_error</div>
     <div>@_status</div>
@@ -108,6 +93,15 @@
             }
         }
         _status = string.Empty;
+    }
+
+    private async Task GoBack()
+    {
+        var canGoBack = await JS.InvokeAsync<int>("eval", "history.length");
+        if (canGoBack > 1)
+            await JS.InvokeVoidAsync("history.back");
+        else
+            Nav.NavigateTo("/");
     }
 
     // protected override async Task OnAfterRenderAsync(bool firstRender)

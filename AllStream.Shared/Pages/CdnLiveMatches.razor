@@ -1,0 +1,334 @@
+@page "/cdnsports"
+@using AllStream.Shared.Services
+@using AllStream.Shared.Models.CDN
+@inject CDNLiveService LiveSport
+
+<PageTitle>Live Sports</PageTitle>
+
+@if (SelectedEvent == null)
+{
+    <div class="ls-container">
+        <header class="ls-header">
+            <h1>Live Sports</h1>
+
+            <div class="ls-controls">
+                <select @bind="FilterSport" class="ls-select">
+                    <option value="">All sports</option>
+                    @foreach (var s in Sports.Keys.OrderBy(x => x.ToString()))
+                    {
+                        <option value="@s.ToString()">@s</option>
+                    }
+                </select>
+                <select @bind="FilterCountry" class="ls-select">
+                    <option value="">All countries</option>
+                    @foreach (var c in Countries)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+
+                <select @bind="FilterTournament" class="ls-select">
+                    <option value="">All tournaments</option>
+                    @foreach (var t in Tournaments)
+                    {
+                        <option value="@t">@t</option>
+                    }
+                </select>
+
+                <select @bind="StatusFilter" class="ls-select">
+                    <option value="All">All statuses</option>
+                    <option value="Live">Live</option>
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Finished">Finished</option>
+                </select>
+
+                <select @bind="SortMode" class="ls-select">
+                    <option value="LiveFirst">Live first</option>
+                    <option value="DateAsc">Date ↑</option>
+                    <option value="DateDesc">Date ↓</option>
+                </select>
+                <button class="ls-select" @onclick="ResetFilters">Reset</button>
+            </div>
+        </header>
+
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="ls-error">@_error</div>
+        }
+        @foreach (var sportGroup in GetSportGroups())
+        {
+            <section class="ls-sport">
+                <h2 class="ls-sport-title">@sportGroup.Key</h2>
+                @if(!sportGroup.Value.Any())
+                {
+                    <div class="ls-no-matches">No matches available</div>
+                }
+                @foreach (var country in ApplyFilters(sportGroup.Value).GroupBy(m => m.Country).OrderBy(g => g.Key))
+                {
+                    <h3 class="ls-group-title">@country.Key                 <img src="@country.First().CountryIMG"/>
+                    </h3>
+                    @foreach (var tournament in country.GroupBy(m => m.Tournament).OrderBy(g => g.Key))
+                    {
+                        <h4 class="ls-subgroup-title">@tournament.Key</h4>
+                        <div class="ls-grid">
+                            @foreach (var match in ApplySort(tournament))
+                            {
+                                <div class="ls-card @(match.Status == GameStatus.Live ? "live" : "")">
+                                    <div class="ls-card-header">
+                                        @if (match.Status == GameStatus.Live)
+                                        {
+                                            <span class="ls-live-pill">LIVE</span>
+                                        }
+                                    </div>
+                                    <div class="ls-teams">
+                                        <div class="ls-team">
+                                            <img src="@match.HomeTeamIMG" />
+                                            <span>@match.HomeTeam</span>
+                                        </div>
+                                        <span class="ls-vs">VS</span>
+                                        <div class="ls-team">
+                                            <img src="@match.AwayTeamIMG" />
+                                            <span>@match.AwayTeam</span>
+                                        </div>
+                                    </div>
+                                    <div class="ls-meta">
+                                        <span>@match.Start</span>
+                                    </div>
+                                    <button disabled="@match.NoChannel" class="ls-play" @onclick="@(() => { SelectedEvent = match; })">Watch</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </section>
+        }
+    </div>
+}
+else
+{
+    <CDNPlayer Match="SelectedEvent" OnBack="BackToList" />
+}
+
+
+
+@code {
+
+
+
+    SportResponse? SelectedEvent;
+
+    IDictionary<Sport, IEnumerable<SportResponse>> Sports = new Dictionary<Sport, IEnumerable<SportResponse>>();
+    string _error = string.Empty;
+
+    string SortMode { get; set; } = "LiveFirst";
+    string? FilterSport { get; set; } = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            var ct = CancellationToken.None;
+            Sports = await LiveSport.GetEventsAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    IEnumerable<SportResponse> ApplySort(IEnumerable<SportResponse> matches)
+    {
+        return SortMode switch
+        {
+            "LiveFirst" => matches
+                .OrderByDescending(m => m.Status == GameStatus.Live)
+                .ThenByDescending(m => m.Channels.Sum(x=>x.Viewers))
+                .ThenByDescending(m=>DateTime.Parse(m.Start)),
+
+            "DateAsc" => matches.OrderBy(m => DateTime.Parse(m.Start)),
+
+            "DateDesc" => matches.OrderByDescending(m => DateTime.Parse(m.Start)),
+
+            _ => matches
+        };
+    }
+
+    IEnumerable<SportResponse> ApplyFilters(IEnumerable<SportResponse> matches)
+    {
+        var q = matches;
+        if (!string.IsNullOrWhiteSpace(FilterCountry)) q = q.Where(m => m.Country == FilterCountry);
+        if (!string.IsNullOrWhiteSpace(FilterTournament)) q = q.Where(m => m.Tournament == FilterTournament);
+        q = StatusFilter switch
+        {
+            "Live" => q.Where(m => m.Status == GameStatus.Live),
+            "Upcoming" => q.Where(m => m.Status == GameStatus.Upcoming),
+            "Finished" => q.Where(m => m.Status == GameStatus.Finished),
+            _ => q
+        };
+        return q;
+    }
+
+    IEnumerable<KeyValuePair<Sport, IEnumerable<SportResponse>>> GetSportGroups()
+    {
+        var all = Sports ?? new Dictionary<Sport, IEnumerable<SportResponse>>();
+        if (string.IsNullOrWhiteSpace(FilterSport)) return all.OrderBy(kvp => kvp.Key.ToString());
+        return Enum.TryParse<Sport>(FilterSport, out var s)
+            ? all.Where(kvp => kvp.Key == s)
+            : Enumerable.Empty<KeyValuePair<Sport, IEnumerable<SportResponse>>>();
+    }
+
+    IEnumerable<SportResponse> CurrentMatches => string.IsNullOrWhiteSpace(FilterSport)
+        ? Sports.Values.SelectMany(x => x)
+        : (Enum.TryParse<Sport>(FilterSport, out var s) && Sports.TryGetValue(s, out var ms) ? ms : Enumerable.Empty<SportResponse>());
+
+    IEnumerable<string> Countries => CurrentMatches.Select(m => m.Country).Distinct().OrderBy(x => x);
+    IEnumerable<string> Tournaments => CurrentMatches
+        .Where(m => string.IsNullOrWhiteSpace(FilterCountry) || m.Country == FilterCountry)
+        .Select(m => m.Tournament).Distinct().OrderBy(x => x);
+
+    string? FilterCountry { get; set; } = string.Empty;
+    string? FilterTournament { get; set; } = string.Empty;
+    string StatusFilter { get; set; } = "All";
+
+    void ResetFilters()
+    {
+        FilterSport = string.Empty;
+        FilterCountry = string.Empty;
+        FilterTournament = string.Empty;
+        StatusFilter = "All";
+    }
+
+    void BackToList()
+    {
+        SelectedEvent = null;
+    }
+}
+
+
+<style>
+    .ls-container {
+    padding: 1.5rem;
+    max-width: 1400px;
+    margin: auto;
+    }
+
+    .ls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    }
+
+    .ls-controls {
+    display: flex;
+    gap: .75rem;
+    }
+
+    .ls-select {
+    padding: .5rem .75rem;
+    border-radius: 8px;
+    background: #1e1e1e;
+    color: #fff;
+    border: 1px solid #333;
+    }
+
+    .ls-error {
+    background: #ff4d4d22;
+    border: 1px solid #ff4d4d;
+    padding: .75rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    }
+
+    .ls-sport {
+    margin-bottom: 2rem;
+        gap: 1.5rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ls-sport-title {
+    margin-bottom: .75rem;
+    }
+
+    .ls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+    }
+
+    .ls-card {
+    background: #141414;
+    border-radius: 14px;
+    padding: 1rem;
+    border: 1px solid #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    color: white;
+    }
+
+    .ls-card.live {
+    border-color: #3cff7a;
+    box-shadow: 0 0 0 1px #3cff7a44;
+    }
+
+    .ls-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+
+    .ls-title {
+    font-weight: 600;
+    }
+
+    .ls-live-pill {
+    background: #3cff7a;
+    color: #000;
+    font-weight: 800;
+    font-size: .7rem;
+    padding: .25rem .5rem;
+    border-radius: 999px;
+    }
+
+    .ls-teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    }
+
+    .ls-team {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    }
+
+    .ls-team img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    }
+
+    .ls-vs {
+    font-weight: 700;
+    opacity: .6;
+    }
+
+    .ls-meta {
+    font-size: .85rem;
+    opacity: .75;
+    }
+
+    .ls-play {
+    margin-top: auto;
+    padding: .6rem;
+    border-radius: 10px;
+    border: none;
+    background: #512bd4;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    }
+
+    </style>

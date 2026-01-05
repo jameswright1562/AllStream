@@ -1,0 +1,122 @@
+@page "/tv"
+@using AllStream.Shared.Services
+@using AllStream.Shared.Models
+@inject IMovieService MovieService
+
+<PageTitle>TV Series</PageTitle>
+
+<div class="container py-3">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-12 col-md-6">
+                    <input class="form-control" @bind="_opts.Query" placeholder="Search TV series" @bind:event="oninput" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <input class="form-control" type="number" min="1" @bind="_opts.Page" placeholder="Page" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <input class="form-control" type="text" @bind="_opts.Region" placeholder="Region" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <input class="form-control" type="number" min="1" @bind="_season" placeholder="Season" />
+                </div>
+                <div class="col-6 col-md-2">
+                    <input class="form-control" type="number" min="1" @bind="_episode" placeholder="Episode" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <select class="form-select" @bind="_opts.Language">
+                        <option value="en-US">English (US)</option>
+                        <option value="en-GB">English (UK)</option>
+                        <option value="fr-FR">French</option>
+                        <option value="es-ES">Spanish</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <button class="btn btn-primary w-100" @onclick="Search">Search</button>
+                </div>
+                <div class="col-12 col-md-3">
+                    <button class="btn btn-outline-secondary w-100" @onclick="Clear">Clear</button>
+                </div>
+            </div>
+            <div class="text-danger mt-2">@_error</div>
+            <div class="mt-2 text-secondary">@(_results.Count) results</div>
+        </div>
+    </div>
+@if (_status == "Loading")
+{
+    <div class="d-flex justify-content-center" style="width: 10vh; height: 10vh;">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+}
+    else
+    {
+        <div class="row mt-3">
+            @foreach (var m in _results)
+            {
+                <div class="col-12 col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100 shadow-sm">
+                        @if (!string.IsNullOrWhiteSpace(m.PosterUrl))
+                        {
+                            <img class="card-img-top" src="@m.PosterUrl" alt="@m.Name"/>
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title d-flex justify-content-between align-items-center text-white">
+                                <span>@m.Name</span>
+                                @if (!string.IsNullOrWhiteSpace(m.Year))
+                                {
+                                    <span class="badge bg-secondary">@m.Year</span>
+                                }
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <a class="btn btn-primary" href="/tv/@m.TmdbId">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div >
+
+@code {
+    MovieSearchOptions _opts = new();
+    string _error = string.Empty;
+    string _status = string.Empty;
+    List<TvSeries> _results = new();
+    int _season = 1;
+    int _episode = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _status = "Loading";
+        _results = (await MovieService.SearchTvAsync(new MovieSearchOptions { Query = string.Empty })).ToList();
+        _status = string.Empty;
+    }
+
+    async Task Search()
+    {
+        try
+        {
+            _status = "Loading";
+            _error = string.Empty;
+            _results = (await MovieService.SearchTvAsync(_opts)).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _status = string.Empty;
+        }
+    }
+
+    async Task Clear()
+    {
+        _opts = new MovieSearchOptions();
+        await Search();
+    }
+}

@@ -18,6 +18,7 @@ using MoviesApp.Services;
 
 #if IOS
 using WebKit;
+using AllStream.Platforms.iOS.WebView;
 #endif
 
 namespace AllStream;
@@ -83,6 +84,11 @@ public static class MauiProgram
                         var wkWebView = handler.PlatformView;
                         wkWebView.Configuration.AllowsInlineMediaPlayback = true;
                         wkWebView.Configuration.MediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypes.None;
+
+                        if (wkWebView.NavigationDelegate is not SafeWKNavigationDelegate)
+                        {
+                             wkWebView.NavigationDelegate = new SafeWKNavigationDelegate(wkWebView.NavigationDelegate, lazyEngine);
+                        }
 #endif
 
 #if WINDOWS

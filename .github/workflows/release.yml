@@ -57,8 +57,30 @@ jobs:
           name: windows-app
           path: allstream-windows.zip
 
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install MAUI Workloads
+        run: dotnet workload install maui-android maui-ios maui-windows
+
+      - name: Publish iOS App
+        run: dotnet publish AllStream/AllStream.csproj -c Release -f net10.0-ios /p:ArchiveOnBuild=true /p:EnableCodeSigning=false
+
+      - name: Upload iOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app
+          path: AllStream/bin/Release/net10.0-ios/ios-arm64/publish/**
+
   create-release:
-    needs: [build-android, build-windows]
+    needs: [build-android, build-windows, build-ios]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -75,10 +97,17 @@ jobs:
           name: windows-app
           path: release-assets/windows
 
+      - name: Download iOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-app
+          path: release-assets/ios
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             release-assets/android/*.apk
             release-assets/windows/*.zip
+            release-assets/ios/**/*
           generate_release_notes: true

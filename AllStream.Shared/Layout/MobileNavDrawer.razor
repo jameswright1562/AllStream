@@ -1,0 +1,30 @@
+﻿@using Microsoft.AspNetCore.Components.Routing
+
+@if (Open)
+{
+    <div class="drawer-backdrop" @onclick="OnClose"></div>
+}
+
+<aside class="drawer @(Open ? "drawer-open" : "drawer-closed")">
+    <div class="drawer-header">
+        <div class="drawer-title">Menu</div>
+        <button class="drawer-close" type="button" @onclick="OnClose" aria-label="Close menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <nav class="drawer-nav">
+        <NavLink class="drawer-link" href="" Match="NavLinkMatch.All" @onclick="OnClose">Home</NavLink>
+        <NavLink class="drawer-link" href="movies" @onclick="OnClose">Movies</NavLink>
+        <NavLink class="drawer-link" href="tv" @onclick="OnClose">TV Series</NavLink>
+        <NavLink class="drawer-link" href="cdnsports" @onclick="OnClose">Live Sports</NavLink>
+    </nav>
+</aside>
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+}

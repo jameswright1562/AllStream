@@ -1,0 +1,38 @@
+<div class="@WrapperCss">
+    <div class="@SpinnerCss" role="status" aria-label="@AriaLabel">
+        <span class="sr-only">@AriaLabel</span>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <div class="text-sm text-gray-400">@Label</div>
+    }
+</div>
+
+@code {
+    [Parameter] public bool Center { get; set; }
+    [Parameter] public string Size { get; set; } = "md";
+    [Parameter] public string AriaLabel { get; set; } = "Loading";
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public string AccentClass { get; set; } = "border-t-blue-500";
+
+    string WrapperCss => Center ? "flex flex-col items-center justify-center" : "inline-flex items-center gap-3";
+
+    string SpinnerCss
+    {
+        get
+        {
+            var sizeCss = Size switch
+            {
+                "xs" => "h-4 w-4",
+                "sm" => "h-6 w-6",
+                "md" => "h-10 w-10",
+                "lg" => "h-14 w-14",
+                _ => Size
+            };
+
+            var extra = string.IsNullOrWhiteSpace(Class) ? string.Empty : $" {Class}";
+            return $"animate-spin rounded-full border-2 border-gray-700 {AccentClass} {sizeCss}{extra}";
+        }
+    }
+}

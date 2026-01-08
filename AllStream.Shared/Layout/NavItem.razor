@@ -1,0 +1,33 @@
+﻿@using Microsoft.AspNetCore.Components.Routing
+
+<NavLink class="nav-item" href="@Href" Match="@Match">
+    @IconSvg
+    <span class="nav-label">@Label</span>
+</NavLink>
+
+@code {
+    [Parameter] public string Href { get; set; } = "";
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+
+    private RenderFragment IconSvg => builder =>
+    {
+        // Tiny inline icon set so you don’t depend on anything.
+        // Swap these with FontAwesome later if you want.
+        var svg = Icon switch
+        {
+            "home" => "<path d=\"M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"></path><polyline points=\"9 22 9 12 15 12 15 22\"></polyline>",
+            "movies" => "<rect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"2.18\" ry=\"2.18\"></rect><line x1=\"7\" y1=\"2\" x2=\"7\" y2=\"22\"></line><line x1=\"17\" y1=\"2\" x2=\"17\" y2=\"22\"></line><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"></line>",
+            "tv" => "<rect x=\"2\" y=\"7\" width=\"20\" height=\"15\" rx=\"2\" ry=\"2\"></rect><polyline points=\"17 2 12 7 7 2\"></polyline>",
+            "sports" => "<polygon points=\"13 2 3 14 12 14 11 22 21 10 12 10 13 2\"></polygon>",
+            _ => ""
+        };
+
+        builder.AddMarkupContent(0, $@"
+<svg xmlns=""http://www.w3.org/2000/svg"" width=""20"" height=""20"" viewBox=""0 0 24 24"" fill=""none"" stroke=""currentColor""
+     stroke-width=""2"" stroke-linecap=""round"" stroke-linejoin=""round"" class=""nav-icon"">
+  {svg}
+</svg>");
+    };
+}

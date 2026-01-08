@@ -1,81 +1,25 @@
-<header class="fixed top-0 left-0 right-0 z-50
-         flex items-center gap-4
-         px-6 py-3
-         bg-[#0b0f1a]/85 backdrop-blur-md
-         border-b border-gray-800 w-full">
-    <div class="text-xl font-bold tracking-tight bg-gradient-to-br from-gray-200 to-gray-400 bg-clip-text text-transparent">AllStream</div>
-    <nav class="ml-auto hidden md:flex gap-6 items-center">
-        <NavLink class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-400 font-medium text-sm transition-all hover:text-gray-200 hover:bg-white/5 [&.active]:text-green-400 [&.active]:bg-green-400/10" href="" Match="NavLinkMatch.All">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[1.125rem] h-[1.125rem] opacity-70 transition-all block group-[.active]:opacity-100 group-[.active]:stroke-green-400"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <span class="leading-none pt-px">Home</span>
-        </NavLink>
-        <NavLink class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-400 font-medium text-sm transition-all hover:text-gray-200 hover:bg-white/5 [&.active]:text-green-400 [&.active]:bg-green-400/10" href="movies">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[1.125rem] h-[1.125rem] opacity-70 transition-all block group-[.active]:opacity-100 group-[.active]:stroke-green-400"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
-            <span class="leading-none pt-px">Movies</span>
-        </NavLink>
-        <NavLink class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-400 font-medium text-sm transition-all hover:text-gray-200 hover:bg-white/5 [&.active]:text-green-400 [&.active]:bg-green-400/10" href="tv">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[1.125rem] h-[1.125rem] opacity-70 transition-all block group-[.active]:opacity-100 group-[.active]:stroke-green-400"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
-            <span class="leading-none pt-px">TV Series</span>
-        </NavLink>
-        <NavLink class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-400 font-medium text-sm transition-all hover:text-gray-200 hover:bg-white/5 [&.active]:text-green-400 [&.active]:bg-green-400/10" href="cdnsports">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-[1.125rem] h-[1.125rem] opacity-70 transition-all block group-[.active]:opacity-100 group-[.active]:stroke-green-400"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            <span class="leading-none pt-px">Live Sports</span>
-        </NavLink>
+@using Microsoft.AspNetCore.Components.Routing
+
+<header class="app-header">
+    <div class="brand">
+        <div class="brand-title">AllStream</div>
+    </div>
+
+    <nav class="nav-desktop">
+        <NavItem Href="" Match="NavLinkMatch.All" Label="Home" Icon="home" />
+        <NavItem Href="movies" Label="Movies" Icon="movies" />
+        <NavItem Href="tv" Label="TV Series" Icon="tv" />
+        <NavItem Href="cdnsports" Label="Live Sports" Icon="sports" />
     </nav>
-    
-    <button class="ml-auto md:hidden w-9 h-9 border border-gray-800 rounded-lg flex items-center justify-center bg-[#0d1424]/50 hover:bg-white/5 cursor-pointer transition-colors text-gray-400" @onclick="ToggleNav">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            @if (_navOpen)
-            {
-                <path d="M18 6L6 18M6 6l12 12"/>
-            }
-            else
-            {
-                <path d="M3 12h18M3 6h18M3 18h18"/>
-            }
+
+    <button class="nav-toggle" type="button" @onclick="OnToggleNav" aria-label="Open navigation">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12h18M3 6h18M3 18h18" />
         </svg>
     </button>
-
-    @if (_navOpen)
-    {
-        <div class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
-             @onclick="CloseNav">
-        </div>
-    }
-
-    <div class="@(_navOpen ? "flex" : "hidden")
-            fixed top-16 left-0 right-0 z-50
-            flex-col bg-gray-900 border-b border-gray-800
-            p-4 gap-2 shadow-lg md:hidden">
-        <NavLink class="w-full p-3 rounded-lg text-gray-400 font-medium text-sm transition-all hover:text-gray-200 hover:bg-white/5 [&.active]:text-green-400 [&.active]:bg-green-400/10 flex items-center gap-2" href="" Match="NavLinkMatch.All" @onclick="CloseNav">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <span>Home</span>
-        </NavLink>
-        <NavLink class="w-full p-3 rounded-lg text-gray-400 font-medium text-sm transition-all hover:text-gray-200 hover:bg-white/5 [&.active]:text-green-400 [&.active]:bg-green-400/10 flex items-center gap-2" href="movies" @onclick="CloseNav">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
-            <span>Movies</span>
-        </NavLink>
-        <NavLink class="w-full p-3 rounded-lg text-gray-400 font-medium text-sm transition-all hover:text-gray-200 hover:bg-white/5 [&.active]:text-green-400 [&.active]:bg-green-400/10 flex items-center gap-2" href="tv" @onclick="CloseNav">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>
-            <span>TV Series</span>
-        </NavLink>
-        <NavLink class="w-full p-3 rounded-lg text-gray-400 font-medium text-sm transition-all hover:text-gray-200 hover:bg-white/5 [&.active]:text-green-400 [&.active]:bg-green-400/10 flex items-center gap-2" href="cdnsports" @onclick="CloseNav">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            <span>Live Sports</span>
-        </NavLink>
-    </div>
 </header>
 
 @code {
-    bool _navOpen = false;
-
-    void ToggleNav()
-    {
-        _navOpen = !_navOpen;
-    }
-
-    void CloseNav()
-    {
-        _navOpen = false;
-    }
+    [Parameter] public EventCallback OnToggleNav { get; set; }
 }

@@ -1,24 +1,26 @@
 @inherits LayoutComponentBase
-@inject IJSRuntime JS
+@using AllStream.Shared.Components
+<div class="app-shell">
+    <NavMenu OnToggleNav="ToggleNav" />
+
+    <main class="app-content" @onclick="CloseNavIfOpen">
+        <div class="container-app">
+            @Body
+        </div>
+    </main>
+
+    <MobileNavDrawer Open="@_navOpen" OnClose="CloseNav" />
+</div>
 
 
-<main class="min-h-screen flex flex-col relative">
-    <NavMenu />
-
-    <article class="flex-1 container mx-auto px-4 max-w-6xl py-5">
-        @Body
-    </article>
-    <div id="blazor-error-ui" data-nosnippet>
-        An unhandled error has occurred.
-        <a href="." class="reload">Reload</a>
-        <span class="dismiss">🗙</span>
-    </div>
-    
-</main>
 @code {
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private bool _navOpen;
+
+    private void ToggleNav() => _navOpen = !_navOpen;
+    private void CloseNav() => _navOpen = false;
+
+    private void CloseNavIfOpen()
     {
-        // if (firstRender)
-        //     await JS.InvokeVoidAsync("allStreamAdSweep");
+        if (_navOpen) _navOpen = false;
     }
 }

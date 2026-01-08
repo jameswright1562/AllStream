@@ -1,0 +1,16 @@
+<div class="bg-gray-800 border border-gray-700 rounded-lg shadow-sm mb-6">
+    <div class="p-4">
+        <div class="grid grid-cols-12 gap-3">
+            @ChildContent
+        </div>
+        @if (FooterContent != null)
+        {
+             @FooterContent
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public RenderFragment FooterContent { get; set; }
+}

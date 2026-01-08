@@ -21,20 +21,7 @@ public partial class MainPage : ContentPage
 #if ANDROID
     void OnLoaded(object? sender, EventArgs e)
     {
-        var handler = blazorWebView?.Handler;
-        if (handler?.PlatformView is global::Android.Webkit.WebView wv)
-        {
-            var settings = wv.Settings;
-            settings.JavaScriptCanOpenWindowsAutomatically = false;
-            settings.SetSupportMultipleWindows(false);
-            settings.JavaScriptEnabled = true;
-            settings.DomStorageEnabled = true;
-            settings.DatabaseEnabled = true;
-            settings.MediaPlaybackRequiresUserGesture = false;
-            settings.MixedContentMode = global::Android.Webkit.MixedContentHandling.AlwaysAllow;
-            global::Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
-            wv.SetWebChromeClient(new SafeWebChromeClient());
-        }
+        // WebView configuration is now handled in MauiProgram.cs via Handler Mapping
     }
 
     static double GetStatusBarHeightDp()

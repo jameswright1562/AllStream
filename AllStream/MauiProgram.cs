@@ -1,4 +1,4 @@
-﻿using AllStream.Services;
+using AllStream.Services;
 using AllStream.Services.AdBlock;
 using AllStream.Shared.Models;
 using AllStream.Shared.Services;
@@ -48,22 +48,32 @@ public static class MauiProgram
                     {
                         var lazyEngine = handler.Services.GetRequiredService<Lazy<Task<AdBlockEngine>>>();
 
-                        //#if ANDROID
-                        //                        var webView = handler.PlatformView;
+#if ANDROID
+                        var webView = handler.PlatformView;
 
-                        //                        webView.SetWebViewClient(new SafeWebViewClient(lazyEngine));
-                        //                        webView.SetWebChromeClient(new SafeWebChromeClient());
+                        // Wrap the existing clients to preserve Blazor functionality (https://0.0.0.1/ loading)
+                        // Ensure we don't wrap our own wrapper if this runs multiple times
+                        if (webView.WebViewClient != null && !(webView.WebViewClient is SafeWebViewClient))
+                        {
+                            webView.SetWebViewClient(new SafeWebViewClient(webView.WebViewClient, lazyEngine));
+                        }
+                        
+                        if (webView.WebChromeClient != null && !(webView.WebChromeClient is SafeWebChromeClient))
+                        {
+                            webView.SetWebChromeClient(new SafeWebChromeClient(webView.WebChromeClient));
+                        }
 
-                        //                        webView.Settings.JavaScriptEnabled = true;
-                        //                        webView.Settings.DomStorageEnabled = true;
-                        //                        webView.Settings.DatabaseEnabled = true;
-                        //                        webView.Settings.MediaPlaybackRequiresUserGesture = false;
-                        //                        webView.Settings.MixedContentMode = Android.Webkit.MixedContentHandling.AlwaysAllow;
+                        webView.Settings.JavaScriptEnabled = true;
+                        webView.Settings.DomStorageEnabled = true;
+                        webView.Settings.DatabaseEnabled = true;
+                        webView.Settings.MediaPlaybackRequiresUserGesture = false;
+                        webView.Settings.MixedContentMode = Android.Webkit.MixedContentHandling.AlwaysAllow;
+                        webView.Settings.BlockNetworkImage = false;
 
-                        //#if DEBUG
-                        //                        Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
-                        //#endif
-                        //#endif
+#if DEBUG
+                        Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
+#endif
+#endif
 
 #if WINDOWS
                         //Old Config
@@ -81,8 +91,7 @@ public static class MauiProgram
             });
 
         // Your config load (keep as-is, but avoid .Result deadlocks)
-        builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-        Settings settingsFromJson = builder.Configuration.Get<Settings>() ?? new Settings();
+
 
         try
         {
@@ -95,22 +104,17 @@ public static class MauiProgram
         {
             // ignore
         }
-
+        builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+        Settings settingsFromJson = builder.Configuration.Get<Settings>() ?? new Settings();
         builder.Services.AddMauiBlazorWebView();
         builder.Services.AddSharedServices(sp => new FormFactor(),
-            builder.Configuration.Get<Settings>() ?? settingsFromJson);
+            settingsFromJson);
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
         builder.Logging.AddDebug();
 #endif
 
-        var app = builder.Build();
-
-        // ✅ Warm up parsing in the background (no blocking)
-        var lazy = app.Services.GetRequiredService<Lazy<Task<AdBlockEngine>>>();
-        _ = lazy.Value; // start task now
-
-        return app;
+        return builder.Build();
     }
 }

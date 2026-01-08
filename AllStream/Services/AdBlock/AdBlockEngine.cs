@@ -7,6 +7,8 @@ public sealed class AdBlockEngine
     private HashSet<string> _blockedDomains =
         new(StringComparer.OrdinalIgnoreCase);
 
+    private HashSet<string> AllowedDomains = new HashSet<string>{"acscdn.com"};
+
     public void LoadDomains(IEnumerable<string> domains)
     {
         _blockedDomains = new HashSet<string>(
@@ -27,8 +29,11 @@ public sealed class AdBlockEngine
         if (string.IsNullOrEmpty(host))
             return false;
 
+        if(AllowedDomains.Contains(host))
+            return false;
+
         // Never block MAUI/Blazor internal hosts
-        if (host is "localhost" or "appassets.androidplatform.net")
+        if (host is "localhost" or "appassets.androidplatform.net" or "0.0.0.1")
             return false;
 
         // Check full domain + parent domains

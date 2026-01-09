@@ -113,5 +113,6 @@ jobs:
         with:
           files: |
             release-assets/android/*.apk
-            release-assets/windows/**/*.msix
+            release-assets/windows/**/AllStream*.msix
           generate_release_notes: true
+          fail_on_unmatched_files: false

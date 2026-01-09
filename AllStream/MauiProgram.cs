@@ -13,7 +13,6 @@ using AllStream.Platforms.Android.WebView;
 
 #if WINDOWS
 using AllStream.Platforms.Windows.WebView;
-using MoviesApp.Services;
 #endif
 
 #if IOS
@@ -97,7 +96,6 @@ public static class MauiProgram
                         var wv2 = handler.PlatformView; // WebView2
                         wv2.CoreWebView2Initialized += (f, e) =>
                         {
-                            //AdBlock.Configure(f.CoreWebView2);
 #if DEBUG
                             f.CoreWebView2.OpenDevToolsWindow();
 #endif
@@ -106,9 +104,6 @@ public static class MauiProgram
 #endif
                     });
             });
-
-        // Your config load (keep as-is, but avoid .Result deadlocks)
-
 
         try
         {
@@ -121,7 +116,6 @@ public static class MauiProgram
         {
             // ignore
         }
-        builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
         Settings settingsFromJson = builder.Configuration.Get<Settings>() ?? new Settings();
         builder.Services.AddMauiBlazorWebView();
         builder.Services.AddSharedServices(sp => new FormFactor(),

@@ -109,5 +109,4 @@ jobs:
           files: |
             release-assets/android/*.apk
             release-assets/windows/*.zip
-            # release-assets/ios/**/*
           generate_release_notes: true

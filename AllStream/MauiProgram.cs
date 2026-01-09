@@ -19,6 +19,7 @@ using MoviesApp.Services;
 #if IOS
 using WebKit;
 using AllStream.Platforms.iOS.WebView;
+using Microsoft.Maui;
 #endif
 
 namespace AllStream;
@@ -49,7 +50,7 @@ public static class MauiProgram
 #endif
                 BlazorWebViewHandler.BlazorWebViewMapper.AppendToMapping(
                     "Adblock",
-                    (handler, view) =>
+                    static (handler, view) =>
                     {
                         var lazyEngine = handler.Services.GetRequiredService<Lazy<Task<AdBlockEngine>>>();
 
@@ -87,7 +88,7 @@ public static class MauiProgram
 
                         if (wkWebView.NavigationDelegate is not SafeWKNavigationDelegate)
                         {
-                             wkWebView.NavigationDelegate = new SafeWKNavigationDelegate(wkWebView.NavigationDelegate, lazyEngine);
+                             wkWebView.NavigationDelegate = new SafeWKNavigationDelegate((WKNavigationDelegate?)wkWebView.NavigationDelegate, lazyEngine);
                         }
 #endif
 

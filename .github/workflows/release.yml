@@ -97,11 +97,11 @@ jobs:
           name: windows-app
           path: release-assets/windows
 
-      - name: Download iOS Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-app
-          path: release-assets/ios
+      # - name: Download iOS Artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ios-app
+      #     path: release-assets/ios
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -109,5 +109,5 @@ jobs:
           files: |
             release-assets/android/*.apk
             release-assets/windows/*.zip
-            release-assets/ios/**/*
+            # release-assets/ios/**/*
           generate_release_notes: true

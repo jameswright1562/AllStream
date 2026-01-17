@@ -6,6 +6,12 @@ using System.Text.Json.Serialization;
 
 namespace AllStream.Shared.Models.CDN
 {
+    public record BaseChannelResponse
+    {
+        [JsonPropertyName("channels")]
+        public required Channel[] Channels { get; init; }
+    }
+
     public record BaseSportResponse
     {
         [JsonPropertyName("cdn-live-tv")]
@@ -25,7 +31,7 @@ namespace AllStream.Shared.Models.CDN
     {
         Soccer,
         NBA,
-        NHL
+        NHL,
     }
 
     public record SportResponse
@@ -41,8 +47,10 @@ namespace AllStream.Shared.Models.CDN
         public required string Start { get; init; }
         public required string? End { get; init; }
         public required GameStatus Status { get; init; }
-        public required Channels[] Channels { get; init; }
-        [JsonIgnore] public bool NoChannel => Channels.Length == 0;
+        public required Channel[] Channels { get; init; }
+
+        [JsonIgnore]
+        public bool NoChannel => Channels.Length == 0;
     }
 
     public enum GameStatus
@@ -57,13 +65,26 @@ namespace AllStream.Shared.Models.CDN
         Finished,
     }
 
-    public record Channels
+    public record Channel
     {
         [JsonPropertyName("channel_name")]
-        public required string Name { get; init; }
+        public string? ChannelName { get; init; }
+
+        [JsonPropertyName("name")]
+        public string? AltName { get; init; }
+
+        [JsonIgnore]
+        public string Name => ChannelName ?? AltName ?? throw new JsonException("Could Not Deserialise channel name");
 
         [JsonPropertyName("channel_code")]
-        public required string Code { get; init; }
+        public string? ChannelCode { get; init; }
+
+        [JsonPropertyName("code")]
+        public string? AltCode { get; init; }
+
+        [JsonIgnore]
+        public string Code => ChannelCode ?? AltCode ?? throw new JsonException("Could not deserialise code");
+
         public required string Url { get; init; }
         public required string Image { get; init; }
         public ChannelStatus? Status { get; init; }
@@ -77,5 +98,6 @@ namespace AllStream.Shared.Models.CDN
 
         [JsonStringEnumMemberName("offline")]
         Offline,
+        Unknown
     }
 }

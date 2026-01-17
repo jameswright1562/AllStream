@@ -51,8 +51,7 @@
                     <option value="DateDesc">Date ↓</option>
                 </select>
 
-                <button class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-md text-white"
-                        @onclick="ResetFilters">
+                <button class="px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-md text-white" @onclick="ResetFilters">
                     Reset
                 </button>
             </div>
@@ -79,7 +78,10 @@
                         <img src="@country.First().CountryIMG" class="h-5 w-auto" />
                     </h3>
 
-                    @foreach (var tournament in country.GroupBy(m => m.Tournament).OrderBy(g => g.Key))
+                    @foreach (var tournament in country
+                            .GroupBy(m => m.Tournament)
+                            .OrderByDescending(g => g.Sum(x => GetMatchViewers(x)))
+                            .ThenBy(g => g.Key))
                     {
                         <h4 class="text-sm uppercase tracking-wide text-gray-400 mb-3">
                             @tournament.Key
@@ -90,18 +92,17 @@
                             @foreach (var match in ApplySort(tournament))
                             {
                                 <!-- MATCH CARD -->
-                                <div class="
-                        relative min-w-[260px] max-w-full
-                        rounded-xl p-4
-                        bg-gradient-to-br from-[#1a2236] to-[#0f172a]
-                        border border-white/10
-                        shadow-lg shadow-black/30
-                        flex flex-col gap-4
-                        transition-all duration-200
-                        hover:-translate-y-1 hover:shadow-xl
-                        @(match.Status == GameStatus.Live
-                                             ? "ring-1 ring-green-400/40 border-green-400/40"
-                                             : "")">
+                                <div class="relative min-w-[260px] max-w-full
+                                                                            rounded-xl p-4
+                                                                            bg-gradient-to-br from-[#1a2236] to-[#0f172a]
+                                                                            border border-white/10
+                                                                            shadow-lg shadow-black/30
+                                                                            flex flex-col gap-4
+                                                                            transition-all duration-200
+                                                                            hover:-translate-y-1 hover:shadow-xl
+                                                                            @(match.Status == GameStatus.Live
+                                                                                                 ? "ring-1 ring-green-400/40 border-green-400/40"
+                                                                                             : "")">
 
                                     <!-- LIVE -->
                                     <div class="h-5">
@@ -109,7 +110,8 @@
                                         {
                                             <span class="flex items-center gap-1 text-xs font-bold text-green-400">
                                                 <span class="relative flex h-2 w-2">
-                                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                    <span
+                                                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                                     <span class="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
                                                 </span>
                                                 LIVE
@@ -136,17 +138,17 @@
                                         </div>
 
                                         <!-- DESKTOP -->
-                                        <div class="hidden sm:grid w-full
-                        grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]
-                        items-center gap-4">
+                                        <div
+                                            class="hidden sm:grid w-full 
+                                                                                                                            grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] 
+                                                                                                                            items-center gap-4">
 
                                             <!-- HOME -->
                                             <div class="flex items-start justify-end gap-2 min-w-0 pr-1">
                                                 <span class="font-medium break-words leading-snug">
                                                     @match.HomeTeam
                                                 </span>
-                                                <img src="@match.HomeTeamIMG"
-                                                     class="w-8 h-8 shrink-0 object-contain" />
+                                                <img src="@match.HomeTeamIMG" class="w-8 h-8 shrink-0 object-contain" />
                                             </div>
 
                                             <!-- VS -->
@@ -156,8 +158,7 @@
 
                                             <!-- AWAY -->
                                             <div class="flex items-start justify-start gap-2 min-w-0 pl-1">
-                                                <img src="@match.AwayTeamIMG"
-                                                     class="w-8 h-8 shrink-0 object-contain" />
+                                                <img src="@match.AwayTeamIMG" class="w-8 h-8 shrink-0 object-contain" />
                                                 <span class="font-medium break-words leading-snug">
                                                     @match.AwayTeam
                                                 </span>
@@ -172,26 +173,12 @@
                                     </div>
 
                                     <!-- CTA -->
-                                    <button disabled="@match.NoChannel"
-                                            @onclick="@(() => SelectedEvent = match)"
-                                            class="
-                            mt-auto w-full
-                            py-2.5 rounded-lg
-                            font-semibold text-white
-
-                            bg-blue-600
-                            hover:bg-blue-700
-                            active:bg-blue-700
-
-                            shadow
-                            shadow-blue-600/20
-
-                            cursor-pointer
-                            transition-all
-
-                            disabled:opacity-40
-                            disabled:cursor-not-allowed
-                        ">
+                                    <button disabled="@match.NoChannel" @onclick="@(() => SelectedEvent = match)"
+                                        class="mt-auto w-full py-2.5 rounded-lg font-semibold text-white
+                                                                                                                                                                           bg-blue-600 hover:bg-blue-700 active:bg-blue-700
+                                                                                                                                                                           shadow shadow-blue-600/20
+                                                                                                                                                                           cursor-pointer transition-all
+                                                                                                                                                                           disabled:opacity-40 disabled:cursor-not-allowed">
                                         ▶ Watch
                                     </button>
                                 </div>
@@ -265,21 +252,34 @@ else
         });
     }
 
+    int GetMatchViewers(SportResponse match) =>
+    match.Channels?.Sum(c => c.Viewers) ?? 0;
+
     IEnumerable<SportResponse> ApplySort(IEnumerable<SportResponse> matches) =>
-        SortMode switch
-        {
-            "LiveFirst" => matches.OrderByDescending(m => m.Status == GameStatus.Live)
-                                  .ThenByDescending(m => DateTime.Parse(m.Start)),
-            "DateAsc" => matches.OrderBy(m => DateTime.Parse(m.Start)),
-            "DateDesc" => matches.OrderByDescending(m => DateTime.Parse(m.Start)),
-            _ => matches
-        };
+    SortMode switch
+    {
+        "LiveFirst" => matches
+    .OrderByDescending(m => GetMatchViewers(m))
+    .ThenByDescending(m => m.Status == GameStatus.Live)
+    .ThenByDescending(m => DateTime.Parse(m.Start)),
+        "DateAsc" => matches
+    .OrderByDescending(m => GetMatchViewers(m))
+    .ThenBy(m => DateTime.Parse(m.Start)),
+        "DateDesc" => matches
+    .OrderByDescending(m => GetMatchViewers(m))
+    .ThenByDescending(m => DateTime.Parse(m.Start)),
+        _ => matches
+    .OrderByDescending(m => GetMatchViewers(m))
+    };
 
     IEnumerable<SportResponse> ApplyFilters(IEnumerable<SportResponse> matches)
     {
         var q = matches;
-        if (!string.IsNullOrWhiteSpace(FilterCountry)) q = q.Where(m => m.Country == FilterCountry);
-        if (!string.IsNullOrWhiteSpace(FilterTournament)) q = q.Where(m => m.Tournament == FilterTournament);
+        if (!string.IsNullOrWhiteSpace(FilterCountry))
+            q = q.Where(m => m.Country == FilterCountry);
+
+        if (!string.IsNullOrWhiteSpace(FilterTournament))
+            q = q.Where(m => m.Tournament == FilterTournament);
         return StatusFilter switch
         {
             "Live" => q.Where(m => m.Status == GameStatus.Live),
@@ -291,16 +291,23 @@ else
 
     IEnumerable<KeyValuePair<Sport, IEnumerable<SportResponse>>> GetSportGroups()
     {
-        if (string.IsNullOrWhiteSpace(FilterSport)) return Sports;
+        if (string.IsNullOrWhiteSpace(FilterSport))
+        {
+            return Sports
+            .OrderByDescending(sg => sg.Value.Sum(m => GetMatchViewers(m)));
+        }
+
         return Enum.TryParse<Sport>(FilterSport, out var s)
-            ? Sports.Where(x => x.Key == s)
-            : Enumerable.Empty<KeyValuePair<Sport, IEnumerable<SportResponse>>>();
+        ? Sports.Where(x => x.Key == s)
+        : Enumerable.Empty<KeyValuePair<Sport, IEnumerable<SportResponse>>>();
     }
 
     IEnumerable<SportResponse> CurrentMatches =>
-        string.IsNullOrWhiteSpace(FilterSport)
-            ? Sports.Values.SelectMany(x => x)
-            : (Enum.TryParse<Sport>(FilterSport, out var s) && Sports.TryGetValue(s, out var ms) ? ms : Enumerable.Empty<SportResponse>());
+    string.IsNullOrWhiteSpace(FilterSport)
+    ? ApplySort(Sports.Values.SelectMany(x => x).Where(x => !x.NoChannel))
+    : (Enum.TryParse<Sport>(FilterSport, out var s) && Sports.TryGetValue(s, out var ms)
+    ? ms
+    : Enumerable.Empty<SportResponse>());
 
     IEnumerable<string> Countries => CurrentMatches.Select(m => m.Country).Distinct();
     IEnumerable<string> Tournaments => CurrentMatches.Select(m => m.Tournament).Distinct();

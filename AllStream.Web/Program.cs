@@ -34,3 +34,5 @@ app.MapRazorComponents<App>()
     .AddAdditionalAssemblies(typeof(AllStream.Shared._Imports).Assembly);
 
 app.Run();
+
+public partial class Program { }

@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /.appmod/.appcat
 /com.companyname.allstream.aab
+
+.idea

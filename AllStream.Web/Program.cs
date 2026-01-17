@@ -33,6 +33,9 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddAdditionalAssemblies(typeof(AllStream.Shared._Imports).Assembly);
 
+var manifest = builder.Configuration.GetSection("Manifest").Get<UpdateManifest>() ?? new UpdateManifest();
+app.MapGet("/manifest.json", () => Results.Json(manifest));
+
 app.Run();
 
 public partial class Program { }

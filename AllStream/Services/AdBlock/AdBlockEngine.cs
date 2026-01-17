@@ -4,16 +4,13 @@ namespace AllStream.Services.AdBlock;
 
 public sealed class AdBlockEngine
 {
-    private HashSet<string> _blockedDomains =
-        new(StringComparer.OrdinalIgnoreCase);
+    private HashSet<string> _blockedDomains = new(StringComparer.OrdinalIgnoreCase);
 
-    private HashSet<string> AllowedDomains = new HashSet<string>{"acscdn.com"};
+    private HashSet<string> AllowedDomains = new HashSet<string> { "acscdn.com" };
 
     public void LoadDomains(IEnumerable<string> domains)
     {
-        _blockedDomains = new HashSet<string>(
-            domains,
-            StringComparer.OrdinalIgnoreCase);
+        _blockedDomains = new HashSet<string>(domains, StringComparer.OrdinalIgnoreCase);
     }
 
     public bool ShouldBlock(string url)
@@ -29,7 +26,7 @@ public sealed class AdBlockEngine
         if (string.IsNullOrEmpty(host))
             return false;
 
-        if(AllowedDomains.Contains(host))
+        if (AllowedDomains.Contains(host))
             return false;
 
         // Never block MAUI/Blazor internal hosts
@@ -43,7 +40,8 @@ public sealed class AdBlockEngine
                 return true;
 
             var dot = host.IndexOf('.');
-            if (dot < 0) break;
+            if (dot < 0)
+                break;
             host = host[(dot + 1)..];
         }
 

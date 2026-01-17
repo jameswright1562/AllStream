@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Components.WebView.Maui;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Storage;
-
 #if ANDROID
 using AllStream.Platforms.Android.WebView;
 #endif
@@ -30,8 +29,9 @@ public static class MauiProgram
         var builder = MauiApp.CreateBuilder();
 
         // ✅ Register async engine without blocking startup
-        builder.Services.AddSingleton(_ =>
-            new Lazy<Task<AdBlockEngine>>(() => AdBlockLoader.CreateDefaultAsync()));
+        builder.Services.AddSingleton(_ => new Lazy<Task<AdBlockEngine>>(() =>
+            AdBlockLoader.CreateDefaultAsync()
+        ));
 
         builder
             .UseMauiApp<App>()
@@ -42,37 +42,55 @@ public static class MauiProgram
             .ConfigureMauiHandlers(_ =>
             {
 #if ANDROID
-                Microsoft.Maui.Handlers.PageHandler.Mapper.AppendToMapping("SafeArea", (handler, view) =>
-                {
-                    handler.PlatformView.SetFitsSystemWindows(true);
-                });
+                Microsoft.Maui.Handlers.PageHandler.Mapper.AppendToMapping(
+                    "SafeArea",
+                    (handler, view) =>
+                    {
+                        handler.PlatformView.SetFitsSystemWindows(true);
+                    }
+                );
 #endif
                 BlazorWebViewHandler.BlazorWebViewMapper.AppendToMapping(
                     "Adblock",
                     static (handler, view) =>
                     {
-                        var lazyEngine = handler.Services.GetRequiredService<Lazy<Task<AdBlockEngine>>>();
+                        var lazyEngine = handler.Services.GetRequiredService<
+                            Lazy<Task<AdBlockEngine>>
+                        >();
 
 #if ANDROID
                         var webView = handler.PlatformView;
 
                         // Wrap the existing clients to preserve Blazor functionality (https://0.0.0.1/ loading)
                         // Ensure we don't wrap our own wrapper if this runs multiple times
-                        if (webView.WebViewClient != null && !(webView.WebViewClient is SafeWebViewClient))
+                        if (
+                            webView.WebViewClient != null
+                            && !(webView.WebViewClient is SafeWebViewClient)
+                        )
                         {
-                            webView.SetWebViewClient(new SafeWebViewClient(webView.WebViewClient, lazyEngine));
+                            webView.SetWebViewClient(
+                                new SafeWebViewClient(webView.WebViewClient, lazyEngine)
+                            );
                         }
-                        
-                        if (webView.WebChromeClient != null && !(webView.WebChromeClient is SafeWebChromeClient))
+
+                        if (
+                            webView.WebChromeClient != null
+                            && !(webView.WebChromeClient is SafeWebChromeClient)
+                        )
                         {
-                            webView.SetWebChromeClient(new SafeWebChromeClient(webView.WebChromeClient));
+                            webView.SetWebChromeClient(
+                                new SafeWebChromeClient(webView.WebChromeClient)
+                            );
                         }
 
                         webView.Settings.JavaScriptEnabled = true;
                         webView.Settings.DomStorageEnabled = true;
                         webView.Settings.DatabaseEnabled = true;
                         webView.Settings.MediaPlaybackRequiresUserGesture = false;
-                        webView.Settings.MixedContentMode = Android.Webkit.MixedContentHandling.AlwaysAllow;
+                        webView.Settings.MixedContentMode = Android
+                            .Webkit
+                            .MixedContentHandling
+                            .AlwaysAllow;
                         webView.Settings.BlockNetworkImage = false;
 
 #if DEBUG
@@ -83,11 +101,15 @@ public static class MauiProgram
 #if IOS
                         var wkWebView = handler.PlatformView;
                         wkWebView.Configuration.AllowsInlineMediaPlayback = true;
-                        wkWebView.Configuration.MediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypes.None;
+                        wkWebView.Configuration.MediaTypesRequiringUserActionForPlayback =
+                            WKAudiovisualMediaTypes.None;
 
                         if (wkWebView.NavigationDelegate is not SafeWKNavigationDelegate)
                         {
-                             wkWebView.NavigationDelegate = new SafeWKNavigationDelegate((WKNavigationDelegate?)wkWebView.NavigationDelegate, lazyEngine);
+                            wkWebView.NavigationDelegate = new SafeWKNavigationDelegate(
+                                (WKNavigationDelegate?)wkWebView.NavigationDelegate,
+                                lazyEngine
+                            );
                         }
 #endif
 
@@ -100,15 +122,19 @@ public static class MauiProgram
                             f.CoreWebView2.OpenDevToolsWindow();
 #endif
                         };
-                       WebView2AdBlock.Attach(handler.PlatformView, lazyEngine);
+                        WebView2AdBlock.Attach(handler.PlatformView, lazyEngine);
 #endif
-                    });
+                    }
+                );
             });
 
         try
         {
-            using var s = FileSystem.OpenAppPackageFileAsync("appsettings.json")
-                .ConfigureAwait(false).GetAwaiter().GetResult();
+            using var s = FileSystem
+                .OpenAppPackageFileAsync("appsettings.json")
+                .ConfigureAwait(false)
+                .GetAwaiter()
+                .GetResult();
 
             builder.Configuration.AddJsonStream(s);
         }
@@ -118,8 +144,7 @@ public static class MauiProgram
         }
         Settings settingsFromJson = builder.Configuration.Get<Settings>() ?? new Settings();
         builder.Services.AddMauiBlazorWebView();
-        builder.Services.AddSharedServices(sp => new FormFactor(),
-            settingsFromJson);
+        builder.Services.AddSharedServices(sp => new FormFactor(), settingsFromJson);
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

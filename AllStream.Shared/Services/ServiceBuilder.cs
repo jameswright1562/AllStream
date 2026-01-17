@@ -1,7 +1,6 @@
-using System;
 using System.Net.Http.Headers;
-using Microsoft.Extensions.DependencyInjection;
 using AllStream.Shared.Models;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AllStream.Shared.Services;
 

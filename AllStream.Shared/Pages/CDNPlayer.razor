@@ -10,7 +10,10 @@
             @foreach (var channel in Match.Channels)
             {
                 <button class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-black/25 text-inherit cursor-pointer snap-start min-w-[220px] border transition-colors hover:bg-black/40 @(SelectedChannel == channel ? "border-green-500 ring-2 ring-green-500/25" : "border-white/15")" role="listitem" @onclick="(() => OnChannelClick(channel))">
-                    <img class="w-[72px] h-[72px] object-contain bg-white/5 border border-white/10 rounded-lg" src="@channel.Image" alt="@channel.Name" />
+                    @if (!string.IsNullOrWhiteSpace(channel.Image))
+                    {
+                        <img class="w-[72px] h-[72px] object-contain bg-white/5 border border-white/10 rounded-lg" src="@channel.Image" alt="" loading="lazy" onerror="this.style.display='none'" />
+                    }
                     <div class="flex flex-col items-center">
                         <span class="font-semibold">@channel.Name</span>
                         <span class="text-sm text-gray-300">Viewers: @channel.Viewers</span>

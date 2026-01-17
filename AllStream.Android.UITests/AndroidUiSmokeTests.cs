@@ -15,22 +15,31 @@ namespace AllStream.Android.UITests
     {
         private AndroidDriver? _driver;
         private WebDriverWait? _wait;
+
         private static bool IsAppiumAvailable()
         {
             try
             {
-                var uri = Environment.GetEnvironmentVariable("APPIUM_SERVER") ?? "http://127.0.0.1:4723/";
-                using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+                var uri =
+                    Environment.GetEnvironmentVariable("APPIUM_SERVER") ?? "http://127.0.0.1:4723/";
+                using var http = new System.Net.Http.HttpClient
+                {
+                    Timeout = TimeSpan.FromSeconds(2),
+                };
                 var res = http.GetAsync(uri).GetAwaiter().GetResult();
                 return res != null;
             }
-            catch { return false; }
+            catch
+            {
+                return false;
+            }
         }
 
         private static string RequireEnvOrFindApk(string name)
         {
             var val = Environment.GetEnvironmentVariable(name);
-            if (!string.IsNullOrWhiteSpace(val) && File.Exists(val)) return val;
+            if (!string.IsNullOrWhiteSpace(val) && File.Exists(val))
+                return val;
 
             // Fallback: search common build output locations
             var root = FindRepoRoot();
@@ -43,11 +52,16 @@ namespace AllStream.Android.UITests
             {
                 if (Directory.Exists(dir))
                 {
-                    var apk = Directory.GetFiles(dir, "*.apk", SearchOption.AllDirectories).FirstOrDefault();
-                    if (!string.IsNullOrWhiteSpace(apk)) return apk;
+                    var apk = Directory
+                        .GetFiles(dir, "*.apk", SearchOption.AllDirectories)
+                        .FirstOrDefault();
+                    if (!string.IsNullOrWhiteSpace(apk))
+                        return apk;
                 }
             }
-            throw new InvalidOperationException($"Missing environment variable: {name} and no APK found in expected build output.");
+            throw new InvalidOperationException(
+                $"Missing environment variable: {name} and no APK found in expected build output."
+            );
         }
 
         private static string FindRepoRoot()
@@ -55,7 +69,8 @@ namespace AllStream.Android.UITests
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             while (dir != null)
             {
-                if (dir.GetFiles("AllStream.sln").Any()) return dir.FullName;
+                if (dir.GetFiles("AllStream.sln").Any())
+                    return dir.FullName;
                 dir = dir.Parent;
             }
             return Directory.GetCurrentDirectory();
@@ -63,7 +78,8 @@ namespace AllStream.Android.UITests
 
         private void StartDriver()
         {
-            var appiumServer = Environment.GetEnvironmentVariable("APPIUM_SERVER") ?? "http://127.0.0.1:4723/";
+            var appiumServer =
+                Environment.GetEnvironmentVariable("APPIUM_SERVER") ?? "http://127.0.0.1:4723/";
             var apkPath = RequireEnvOrFindApk("APK_PATH");
 
             var opts = new AppiumOptions();
@@ -93,7 +109,9 @@ namespace AllStream.Android.UITests
                 }
                 Thread.Sleep(1000);
             }
-            throw new InvalidOperationException("WEBVIEW context not available. Ensure WebView debugging is enabled (Debug build). ");
+            throw new InvalidOperationException(
+                "WEBVIEW context not available. Ensure WebView debugging is enabled (Debug build). "
+            );
         }
 
         private string GetHtml()
@@ -171,7 +189,11 @@ namespace AllStream.Android.UITests
 
         public void Dispose()
         {
-            try { _driver?.Quit(); } catch { }
+            try
+            {
+                _driver?.Quit();
+            }
+            catch { }
             _driver?.Dispose();
         }
     }

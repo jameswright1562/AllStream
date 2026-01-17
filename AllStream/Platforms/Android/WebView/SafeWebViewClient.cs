@@ -1,8 +1,8 @@
+using AllStream.Services.AdBlock;
 using Android.App;
+using Android.OS;
 using Android.Views;
 using Android.Webkit;
-using AllStream.Services.AdBlock;
-using Android.OS;
 using Microsoft.Maui.ApplicationModel;
 using View = Android.Views.View;
 
@@ -13,6 +13,7 @@ internal sealed class SafeWebViewClient : WebViewClient
     private readonly WebViewClient _baseClient;
     private readonly Lazy<Task<AdBlockEngine>> _lazyEngine;
     private AdBlockEngine? _engine;
+
     // Static client to avoid socket exhaustion and overhead
     private static readonly HttpClient _httpClient = new HttpClient();
 
@@ -26,7 +27,8 @@ internal sealed class SafeWebViewClient : WebViewClient
     {
         try
         {
-            if (_engine != null) return _engine;
+            if (_engine != null)
+                return _engine;
             // Use a timeout or safe access if possible, but for now just try/catch the result retrieval
             _engine = _lazyEngine.Value.ConfigureAwait(false).GetAwaiter().GetResult();
             return _engine;
@@ -40,14 +42,15 @@ internal sealed class SafeWebViewClient : WebViewClient
 
     public override WebResourceResponse? ShouldInterceptRequest(
         global::Android.Webkit.WebView view,
-        IWebResourceRequest request)
+        IWebResourceRequest request
+    )
     {
         try
         {
             var url = request?.Url?.ToString();
             if (string.IsNullOrWhiteSpace(url))
             {
-                 return base.ShouldInterceptRequest(view, request);
+                return base.ShouldInterceptRequest(view, request);
             }
 
             // 0. Explicitly ALLOW images to bypass AdBlock (temporary fix for user issue)
@@ -55,7 +58,7 @@ internal sealed class SafeWebViewClient : WebViewClient
             if (IsImage(url))
             {
                 // Try to load manually to bypass WebView Referer/Header issues
-                try 
+                try
                 {
                     // Use the static client
                     var response = Task.Run(() => _httpClient.GetAsync(url)).Result;
@@ -68,16 +71,19 @@ internal sealed class SafeWebViewClient : WebViewClient
                         ms.Position = 0;
 
                         var mimeType = "image/jpeg";
-                        if (url.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) mimeType = "image/png";
-                        else if (url.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)) mimeType = "image/webp";
-                        else if (url.EndsWith(".gif", StringComparison.OrdinalIgnoreCase)) mimeType = "image/gif";
-                        
+                        if (url.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                            mimeType = "image/png";
+                        else if (url.EndsWith(".webp", StringComparison.OrdinalIgnoreCase))
+                            mimeType = "image/webp";
+                        else if (url.EndsWith(".gif", StringComparison.OrdinalIgnoreCase))
+                            mimeType = "image/gif";
+
                         return new WebResourceResponse(mimeType, "UTF-8", ms);
                     }
                 }
                 catch (Exception ex)
                 {
-                     System.Diagnostics.Debug.WriteLine($"Manual Image Load Failed: {ex}");
+                    System.Diagnostics.Debug.WriteLine($"Manual Image Load Failed: {ex}");
                 }
                 return null; // Fallback to network load
             }
@@ -90,14 +96,14 @@ internal sealed class SafeWebViewClient : WebViewClient
             }
 
             // 2. Delegate to Blazor's client ONLY for app content (0.0.0.0)
-            // Blazor uses https://0.0.0.0/ (or 0.0.0.1 sometimes) to serve local files. 
+            // Blazor uses https://0.0.0.0/ (or 0.0.0.1 sometimes) to serve local files.
             if (request?.Url?.Host == "0.0.0.0" || request?.Url?.Host == "0.0.0.1")
             {
                 return _baseClient?.ShouldInterceptRequest(view, request);
             }
 
             // 3. For everything else (external images, API calls), let WebView handle it naturally
-            return null; 
+            return null;
         }
         catch (Exception ex)
         {
@@ -111,22 +117,27 @@ internal sealed class SafeWebViewClient : WebViewClient
     {
         // Simple check for common image extensions
         // In a real app, we might check MIME type if available, but URL is faster here
-        return url.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-               url.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
-               url.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
-               url.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
-               url.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
-               url.Contains("tmdb.org") || // Whitelist TMDB specifically just in case
-               url.Contains("image");      // Broad heuristic
+        return url.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".gif", StringComparison.OrdinalIgnoreCase)
+            || url.Contains("tmdb.org")
+            || // Whitelist TMDB specifically just in case
+            url.Contains("image"); // Broad heuristic
     }
 
-    public override bool ShouldOverrideUrlLoading(global::Android.Webkit.WebView view, IWebResourceRequest request)
+    public override bool ShouldOverrideUrlLoading(
+        global::Android.Webkit.WebView view,
+        IWebResourceRequest request
+    )
     {
         var url = request?.Url;
-        if (url == null) return false;
+        if (url == null)
+            return false;
 
         var urlString = url.ToString();
-        
+
         // Block ads trying to navigate
         var engine = GetEngineSafe();
         if (engine != null && engine.ShouldBlock(urlString))
@@ -162,8 +173,12 @@ internal sealed class SafeWebViewClient : WebViewClient
         _baseClient?.OnPageFinished(view, url);
         base.OnPageFinished(view, url);
     }
-    
-    public override void OnPageStarted(global::Android.Webkit.WebView view, string url, global::Android.Graphics.Bitmap favicon)
+
+    public override void OnPageStarted(
+        global::Android.Webkit.WebView view,
+        string url,
+        global::Android.Graphics.Bitmap favicon
+    )
     {
         _baseClient?.OnPageStarted(view, url, favicon);
         base.OnPageStarted(view, url, favicon);
@@ -190,23 +205,29 @@ internal sealed class SafeWebChromeClient : WebChromeClient
         }
 
         var activity = Platform.CurrentActivity;
-        if (activity == null || view == null) return;
+        if (activity == null || view == null)
+            return;
 
         _customView = view;
         _customViewCallback = callback;
 
         var rootView = activity.Window?.DecorView as ViewGroup;
-        rootView?.AddView(_customView, new ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MatchParent,
-            ViewGroup.LayoutParams.MatchParent));
+        rootView?.AddView(
+            _customView,
+            new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MatchParent,
+                ViewGroup.LayoutParams.MatchParent
+            )
+        );
 
         // Hide system UI
         if (activity.Window?.DecorView != null)
         {
             activity.Window.DecorView.SystemUiVisibility = (StatusBarVisibility)(
-                SystemUiFlags.Fullscreen |
-                SystemUiFlags.HideNavigation |
-                SystemUiFlags.ImmersiveSticky);
+                SystemUiFlags.Fullscreen
+                | SystemUiFlags.HideNavigation
+                | SystemUiFlags.ImmersiveSticky
+            );
         }
     }
 
@@ -231,28 +252,48 @@ internal sealed class SafeWebChromeClient : WebChromeClient
     }
 
     // Forwarding critical Blazor WebChromeClient methods
-    
-    public override bool OnShowFileChooser(global::Android.Webkit.WebView webView, IValueCallback filePathCallback, FileChooserParams fileChooserParams)
+
+    public override bool OnShowFileChooser(
+        global::Android.Webkit.WebView webView,
+        IValueCallback filePathCallback,
+        FileChooserParams fileChooserParams
+    )
     {
-        return _baseClient?.OnShowFileChooser(webView, filePathCallback, fileChooserParams) 
-               ?? base.OnShowFileChooser(webView, filePathCallback, fileChooserParams);
+        return _baseClient?.OnShowFileChooser(webView, filePathCallback, fileChooserParams)
+            ?? base.OnShowFileChooser(webView, filePathCallback, fileChooserParams);
     }
 
-    public override bool OnJsAlert(global::Android.Webkit.WebView view, string url, string message, JsResult result)
+    public override bool OnJsAlert(
+        global::Android.Webkit.WebView view,
+        string url,
+        string message,
+        JsResult result
+    )
     {
-        return _baseClient?.OnJsAlert(view, url, message, result) 
-               ?? base.OnJsAlert(view, url, message, result);
+        return _baseClient?.OnJsAlert(view, url, message, result)
+            ?? base.OnJsAlert(view, url, message, result);
     }
 
-    public override bool OnJsConfirm(global::Android.Webkit.WebView view, string url, string message, JsResult result)
+    public override bool OnJsConfirm(
+        global::Android.Webkit.WebView view,
+        string url,
+        string message,
+        JsResult result
+    )
     {
-        return _baseClient?.OnJsConfirm(view, url, message, result) 
-               ?? base.OnJsConfirm(view, url, message, result);
+        return _baseClient?.OnJsConfirm(view, url, message, result)
+            ?? base.OnJsConfirm(view, url, message, result);
     }
 
-    public override bool OnJsPrompt(global::Android.Webkit.WebView view, string url, string message, string defaultValue, JsPromptResult result)
+    public override bool OnJsPrompt(
+        global::Android.Webkit.WebView view,
+        string url,
+        string message,
+        string defaultValue,
+        JsPromptResult result
+    )
     {
-        return _baseClient?.OnJsPrompt(view, url, message, defaultValue, result) 
-               ?? base.OnJsPrompt(view, url, message, defaultValue, result);
+        return _baseClient?.OnJsPrompt(view, url, message, defaultValue, result)
+            ?? base.OnJsPrompt(view, url, message, defaultValue, result);
     }
 }

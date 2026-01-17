@@ -74,7 +74,8 @@ namespace AllStream.Shared.Models.CDN
         public string? AltName { get; init; }
 
         [JsonIgnore]
-        public string Name => ChannelName ?? AltName ?? throw new JsonException("Could Not Deserialise channel name");
+        public string Name =>
+            ChannelName ?? AltName ?? throw new JsonException("Could Not Deserialise channel name");
 
         [JsonPropertyName("channel_code")]
         public string? ChannelCode { get; init; }
@@ -83,7 +84,8 @@ namespace AllStream.Shared.Models.CDN
         public string? AltCode { get; init; }
 
         [JsonIgnore]
-        public string Code => ChannelCode ?? AltCode ?? throw new JsonException("Could not deserialise code");
+        public string Code =>
+            ChannelCode ?? AltCode ?? throw new JsonException("Could not deserialise code");
 
         public required string Url { get; init; }
         public required string Image { get; init; }
@@ -98,6 +100,6 @@ namespace AllStream.Shared.Models.CDN
 
         [JsonStringEnumMemberName("offline")]
         Offline,
-        Unknown
+        Unknown,
     }
 }

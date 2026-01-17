@@ -1,76 +1,77 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
-	<PropertyGroup>
-		<TargetFrameworks>net10.0-android;net10.0-ios</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-android;net10.0-ios</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">
 			$(TargetFrameworks);net10.0-windows10.0.19041.0
-		</TargetFrameworks>
+		</TargetFrameworks
+    >
 
-		<OutputType>Exe</OutputType>
-		<RootNamespace>AllStream</RootNamespace>
-		<UseMaui>true</UseMaui>
-		<SingleProject>true</SingleProject>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<EnableDefaultCssItems>false</EnableDefaultCssItems>
-		<Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>AllStream</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCssItems>false</EnableDefaultCssItems>
+    <Nullable>enable</Nullable>
 
-		<!-- App identity -->
-		<ApplicationTitle>AllStream</ApplicationTitle>
-		<ApplicationId>com.companyname.allstream</ApplicationId>
+    <!-- App identity -->
+    <ApplicationTitle>AllStream</ApplicationTitle>
+    <ApplicationId>com.companyname.allstream</ApplicationId>
 
-		<!-- Versioning (override in CI later if you want) -->
-		<ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+    <!-- Versioning (override in CI later if you want) -->
+    <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
 
-		<DefaultLanguage>en</DefaultLanguage>
-	</PropertyGroup>
+    <DefaultLanguage>en</DefaultLanguage>
+  </PropertyGroup>
 
-	<!-- Windows-specific packaging -->
-	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
-		<WindowsPackageType>MSIX</WindowsPackageType>
-		<AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
-		<GenerateAppInstallerFile>false</GenerateAppInstallerFile>
-		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-		<SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
-	</PropertyGroup>
+  <!-- Windows-specific packaging -->
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <WindowsPackageType>MSIX</WindowsPackageType>
+    <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+    <GenerateAppInstallerFile>false</GenerateAppInstallerFile>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
 
-	<!-- Platform minimums -->
-	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
-		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
-	</PropertyGroup>
+  <!-- Platform minimums -->
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+    <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
-	</PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+    <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
 
-	<!-- Assets -->
-	<ItemGroup>
-		<MauiIcon Include="Resources\AppIcon\appicon.svg"
-				  ForegroundFile="Resources\AppIcon\appiconfg.svg"
-				  Color="#512BD4" />
+  <!-- Assets -->
+  <ItemGroup>
+    <MauiIcon
+      Include="Resources\AppIcon\appicon.svg"
+      ForegroundFile="Resources\AppIcon\appiconfg.svg"
+      Color="#512BD4"
+    />
 
-		<MauiSplashScreen Include="Resources\Splash\splash.svg"
-						  Color="#512BD4"
-						  BaseSize="128,128" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
 
-		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.svg"
-				   BaseSize="168,208" />
+    <MauiImage Include="Resources\Images\*" />
+    <MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208" />
 
-		<MauiFont Include="Resources\Fonts\*" />
+    <MauiFont Include="Resources\Fonts\*" />
 
-		<MauiAsset Include="Resources\Raw\**"
-				   LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
-	</ItemGroup>
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
 
-	<!-- Packages -->
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
-	</ItemGroup>
+  <!-- Packages -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <PackageReference
+      Include="Microsoft.AspNetCore.Components.WebView.Maui"
+      Version="$(MauiVersion)"
+    />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\AllStream.Shared\AllStream.Shared.csproj" />
-	</ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\AllStream.Shared\AllStream.Shared.csproj" />
+  </ItemGroup>
 </Project>

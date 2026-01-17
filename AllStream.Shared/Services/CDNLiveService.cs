@@ -12,6 +12,7 @@ namespace AllStream.Shared.Services
     {
         private readonly HttpClient _http;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
+
         public CDNLiveService(HttpClient http)
         {
             _http = http;
@@ -23,6 +24,7 @@ namespace AllStream.Shared.Services
                 new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
             );
         }
+
         private static IDictionary<Sport, IEnumerable<SportResponse>> ExtractSportResponses(
             BaseSportResponse root,
             BaseChannelResponse? channelRoot,
@@ -39,21 +41,29 @@ namespace AllStream.Shared.Services
             var channelDict = channelRoot?.Channels.ToDictionary(x => x.Url, x => x);
             return items.ToDictionary(
                 x => (Sport)Enum.Parse(typeof(Sport), x.Key, true),
-                x => (
-                    x.Value.ValueKind == JsonValueKind.Array
-                        ? JsonSerializer.Deserialize<SportResponse[]>(x.Value.GetRawText(), opts)!
-                        : Enumerable.Empty<SportResponse>()).Select(s =>
-                        {
-                            var channels = s.Channels.Select(c =>
+                x =>
+                    (
+                        x.Value.ValueKind == JsonValueKind.Array
+                            ? JsonSerializer.Deserialize<SportResponse[]>(
+                                x.Value.GetRawText(),
+                                opts
+                            )!
+                            : Enumerable.Empty<SportResponse>()
+                    ).Select(s =>
+                    {
+                        var channels = s
+                            .Channels.Select(c =>
                             {
-                                var channel = channelDict?.TryGetValue(c.Url, out var innerChannel) == true
-                                    ? innerChannel
-                                    : c;
+                                var channel =
+                                    channelDict?.TryGetValue(c.Url, out var innerChannel) == true
+                                        ? innerChannel
+                                        : c;
                                 return channel;
-                            }).ToArray();
-                            return s with { Channels = channels };
-                        }
-            ));
+                            })
+                            .ToArray();
+                        return s with { Channels = channels };
+                    })
+            );
         }
 
         public async Task<IDictionary<Sport, IEnumerable<SportResponse>>> GetEventsAsync(

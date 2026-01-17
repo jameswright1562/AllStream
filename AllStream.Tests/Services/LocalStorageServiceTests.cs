@@ -24,7 +24,11 @@ namespace AllStream.Tests.Services
                 return ValueTask.FromResult<TValue>(default!);
             }
 
-            public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
+            public ValueTask<TValue> InvokeAsync<TValue>(
+                string identifier,
+                CancellationToken cancellationToken,
+                object?[]? args
+            )
             {
                 return InvokeAsync<TValue>(identifier, args);
             }

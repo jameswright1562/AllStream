@@ -42,7 +42,8 @@ namespace AllStream.Tests.Platforms
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             while (dir != null)
             {
-                if (dir.GetFiles("AllStream.sln").Any()) return dir.FullName;
+                if (dir.GetFiles("AllStream.sln").Any())
+                    return dir.FullName;
                 dir = dir.Parent;
             }
             throw new DirectoryNotFoundException("Repo root not found");

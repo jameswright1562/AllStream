@@ -1,8 +1,8 @@
-using WebKit;
-using Foundation;
-using AllStream.Services.AdBlock;
-using UIKit;
 using System.Threading.Tasks;
+using AllStream.Services.AdBlock;
+using Foundation;
+using UIKit;
+using WebKit;
 
 namespace AllStream.Platforms.iOS.WebView;
 
@@ -12,7 +12,10 @@ public class SafeWKNavigationDelegate : WKNavigationDelegate
     private AdBlockEngine? _engine;
     private readonly WKNavigationDelegate? _originalDelegate;
 
-    public SafeWKNavigationDelegate(WKNavigationDelegate? originalDelegate, Lazy<Task<AdBlockEngine>> lazyEngine)
+    public SafeWKNavigationDelegate(
+        WKNavigationDelegate? originalDelegate,
+        Lazy<Task<AdBlockEngine>> lazyEngine
+    )
     {
         _originalDelegate = originalDelegate;
         _lazyEngine = lazyEngine;
@@ -22,7 +25,8 @@ public class SafeWKNavigationDelegate : WKNavigationDelegate
     {
         try
         {
-            if (_engine != null) return _engine;
+            if (_engine != null)
+                return _engine;
             // Non-blocking attempt or just wait if needed.
             // Since DecidePolicy is synchronous-ish (completion handler), we can't await easily without blocking UI.
             // But _lazyEngine.Value returns a Task.
@@ -39,10 +43,14 @@ public class SafeWKNavigationDelegate : WKNavigationDelegate
         }
     }
 
-    public override void DecidePolicy(WKWebView webView, WKNavigationAction navigationAction, Action<WKNavigationActionPolicy> decisionHandler)
+    public override void DecidePolicy(
+        WKWebView webView,
+        WKNavigationAction navigationAction,
+        Action<WKNavigationActionPolicy> decisionHandler
+    )
     {
         var url = navigationAction.Request.Url?.ToString();
-        
+
         if (!string.IsNullOrWhiteSpace(url))
         {
             var engine = GetEngineSafe();
@@ -61,26 +69,30 @@ public class SafeWKNavigationDelegate : WKNavigationDelegate
             // If the original delegate implements DecidePolicy, we should call it.
             // However, we can't call it directly and pass the same decisionHandler easily if it expects to be the one calling it.
             // But we can try.
-            
+
             // Reflection or casting?
             // WKNavigationDelegate is a class in Xamarin.iOS/MAUI.
-            
-             _originalDelegate.DecidePolicy(webView, navigationAction, decisionHandler);
-             return;
+
+            _originalDelegate.DecidePolicy(webView, navigationAction, decisionHandler);
+            return;
         }
 
         decisionHandler(WKNavigationActionPolicy.Allow);
     }
-    
+
     // Forward other common methods if needed, but for Blazor Hybrid, the main one is DecidePolicy.
     // BlazorWebView's delegate handles DidFinishNavigation etc.
-    
+
     public override void DidFinishNavigation(WKWebView webView, WKNavigation navigation)
     {
         _originalDelegate?.DidFinishNavigation(webView, navigation);
     }
 
-    public override void DidFailNavigation(WKWebView webView, WKNavigation navigation, NSError error)
+    public override void DidFailNavigation(
+        WKWebView webView,
+        WKNavigation navigation,
+        NSError error
+    )
     {
         _originalDelegate?.DidFailNavigation(webView, navigation, error);
     }

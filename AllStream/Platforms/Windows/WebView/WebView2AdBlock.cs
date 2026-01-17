@@ -12,18 +12,19 @@ internal static class WebView2AdBlock
 {
     private static bool IsImage(string url)
     {
-        return url.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-               url.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
-               url.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
-               url.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
-               url.EndsWith(".gif", StringComparison.OrdinalIgnoreCase) ||
-               url.Contains("tmdb.org") || 
-               url.Contains("image");
+        return url.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)
+            || url.EndsWith(".gif", StringComparison.OrdinalIgnoreCase)
+            || url.Contains("tmdb.org")
+            || url.Contains("image");
     }
 
     public static void Attach(
         Microsoft.UI.Xaml.Controls.WebView2 webView,
-        Lazy<Task<AdBlockEngine>> lazyEngine)
+        Lazy<Task<AdBlockEngine>> lazyEngine
+    )
     {
         webView.CoreWebView2Initialized += (_, _) =>
         {
@@ -55,7 +56,8 @@ internal static class WebView2AdBlock
                         new InMemoryRandomAccessStream(),
                         200,
                         "OK",
-                        "Content-Type: text/plain");
+                        "Content-Type: text/plain"
+                    );
                 }
             };
             core.NewWindowRequested += (_, e) =>
@@ -69,11 +71,18 @@ internal static class WebView2AdBlock
                     return;
                 }
 
-                if (Uri.TryCreate(uri, UriKind.Absolute, out var uriObj) && 
-                    (uriObj.Scheme == "http" || uriObj.Scheme == "https"))
+                if (
+                    Uri.TryCreate(uri, UriKind.Absolute, out var uriObj)
+                    && (uriObj.Scheme == "http" || uriObj.Scheme == "https")
+                )
                 {
                     var host = uriObj.Host;
-                    if (host != "0.0.0.1" && host != "0.0.0.0" && host != "localhost" && host != "127.0.0.1")
+                    if (
+                        host != "0.0.0.1"
+                        && host != "0.0.0.0"
+                        && host != "localhost"
+                        && host != "127.0.0.1"
+                    )
                     {
                         Launcher.Default.OpenAsync(new Uri(uri));
                     }
@@ -89,11 +98,18 @@ internal static class WebView2AdBlock
                     return;
                 }
 
-                if (Uri.TryCreate(uri, UriKind.Absolute, out var uriObj) && 
-                    (uriObj.Scheme == "http" || uriObj.Scheme == "https"))
+                if (
+                    Uri.TryCreate(uri, UriKind.Absolute, out var uriObj)
+                    && (uriObj.Scheme == "http" || uriObj.Scheme == "https")
+                )
                 {
                     var host = uriObj.Host;
-                    if (host != "0.0.0.1" && host != "0.0.0.0" && host != "localhost" && host != "127.0.0.1")
+                    if (
+                        host != "0.0.0.1"
+                        && host != "0.0.0.0"
+                        && host != "localhost"
+                        && host != "127.0.0.1"
+                    )
                     {
                         e.Cancel = true;
                         Launcher.Default.OpenAsync(new Uri(uri));
@@ -101,7 +117,6 @@ internal static class WebView2AdBlock
                 }
             };
         };
-
     }
 }
 #endif

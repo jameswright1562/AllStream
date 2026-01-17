@@ -15,12 +15,17 @@ namespace AllStream.Tests.Http
             _responder = responder;
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken
+        )
         {
-            var response = _responder(request) ?? new HttpResponseMessage(HttpStatusCode.NotFound)
-            {
-                Content = new StringContent("{}")
-            };
+            var response =
+                _responder(request)
+                ?? new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent("{}"),
+                };
             return Task.FromResult(response);
         }
     }

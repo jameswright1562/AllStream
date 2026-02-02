@@ -19,11 +19,13 @@ public partial class MainPage : ContentPage
 #endif
     }
 
-#if ANDROID
     void OnLoaded(object? sender, EventArgs e)
     {
         // WebView configuration is now handled in MauiProgram.cs via Handler Mapping
+        TryCheckUpdates();
     }
+
+#if ANDROID
 
     static double GetStatusBarHeightDp()
     {
@@ -34,6 +36,19 @@ public partial class MainPage : ContentPage
         var density = res.DisplayMetrics.Density;
 
         return density > 0 ? px / density : 0;
+    }
+
+    void TryCheckUpdates()
+    {
+        try
+        {
+            var svc = this.Handler?.MauiContext?.Services?.GetService<AllStream.Shared.Services.IAppUpdateService>();
+            if (svc != null)
+            {
+                Dispatcher.Dispatch(async () => await svc.CheckForUpdatesAsync());
+            }
+        }
+        catch { }
     }
 #endif
 }

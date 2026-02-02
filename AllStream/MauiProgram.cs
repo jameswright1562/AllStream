@@ -144,7 +144,11 @@ public static class MauiProgram
         }
         Settings settingsFromJson = builder.Configuration.Get<Settings>() ?? new Settings();
         builder.Services.AddMauiBlazorWebView();
-        builder.Services.AddSharedServices(sp => new FormFactor(), settingsFromJson);
+        builder.Services.AddSharedServices(sp => new FormFactor(),
+            settingsFromJson);
+#if ANDROID
+        builder.Services.AddSingleton<AllStream.Shared.Services.IAppUpdateService, AllStream.Platforms.Android.Updates.AndroidAppUpdateService>();
+#endif
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();

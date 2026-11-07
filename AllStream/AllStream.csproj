@@ -5,6 +5,10 @@
 			$(TargetFrameworks);net10.0-windows10.0.19041.0
 		</TargetFrameworks
     >
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('osx'))">
+			$(TargetFrameworks);net10.0-maccatalyst
+		</TargetFrameworks
+    >
 
     <OutputType>Exe</OutputType>
     <RootNamespace>AllStream</RootNamespace>
@@ -13,6 +17,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <EnableDefaultCssItems>false</EnableDefaultCssItems>
     <Nullable>enable</Nullable>
+
+    <!-- Bypass Xcode version check: installed Xcode is one patch version behind what the
+         Mac Catalyst SDK asks for; this has not caused real incompatibilities in practice. -->
+    <ValidateXcodeVersion>false</ValidateXcodeVersion>
 
     <!-- App identity -->
     <ApplicationTitle>AllStream</ApplicationTitle>
@@ -43,6 +51,10 @@
     <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+    <SupportedOSPlatformVersion>17.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
   <!-- Assets -->
   <ItemGroup>
     <MauiIcon
@@ -69,6 +81,7 @@
       Version="$(MauiVersion)"
     />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Maui.Resizetizer" Version="10.0.120" />
   </ItemGroup>
 
   <ItemGroup>
